@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8"/>
+<title>スコープ選択</title>
+<style>
+    body {
+        width: 35em;
+        margin: 0 auto;
+        font-family: Tahoma, Verdana, Arial, sans-serif;
+        background-color: #f2f2f2;
+    }
+</style>
+</head>
+<body>
+<h1>gBizConnect Node</h1>
+<hr>
+<h1>スコープ選択画面</h1>
+<h2>申請に必要な法人データを法人データストアから自動取得できます。<br>自動取得する場合は法人データストアと法人データの種類を選択し自動取得するボタンを押してください。<br>自動取得しない場合は自動取得しないボタンを押してください。</h2>
+<form action="https://edge.denshi.jp/v1/auth" method="GET" name="autogetform">
+<h1>
+<table>
+<tr>
+<td>法人データストア：</td>
+<td>
+<select name="client_id">
+<option value="app-datastore">法人データストア(app-datastore)</option>
+<option value="B">法人データストアB</option>
+<option value="C">法人データストアC</option>
+</select>
+</td>
+</tr>
+<tr>
+<td>法人データ種類：</td>
+<td>
+<input type="checkbox" name="scope" value="kihon">基本<br>
+<input type="checkbox" name="scope" value="shinsei">申請<br>
+<input type="checkbox" name="scope" value="zaimujoho">財務情報<br>
+</td>
+</tr>
+</table>
+<input type="hidden" name="state" value="">
+<input type="button" value="自動取得する" style="background-color: #5b9bd5; color: white; font-size: xx-large;" onclick="autoget();">
+</form>
+<hr>
+<form action="http://localhost:8084/shinsei-naiyo" method="GET">
+<input type="hidden" name="init" value="true">
+<input type="submit" value="自動取得しない" style="background-color: #5b9bd5; color: white; font-size: xx-large;">
+</form>
+</body>
+</html>
+<script>
+function confirmChecked() {
+  var isAnyChecked = false;
+  var checkboxes = document.getElementsByName("scope");
+  for (var i = 0; i < checkboxes.length; i++) {
+    if (checkboxes.item(i).checked) {
+      isAnyChecked = true;
+    }
+  }
+  return isAnyChecked;
+}
+function getQueryParam(key) {
+  var value = window.location.href.match(new RegExp("[?&]" + key + "=(.*?)(&|$|#)"));
+  if (value == null) return '';
+  return decodeURIComponent(value[1]);
+}
+function autoget() {
+  if (!confirmChecked()) {
+    alert("法人データ種類を1つ以上選択してください。");
+    return;
+  }
+  document.autogetform.state.value = getQueryParam("state");
+  document.autogetform.submit();
+}
+</script>
