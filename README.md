@@ -6,13 +6,13 @@
 * また、電子申請システム及び法人データストアの開発者に対して情報提供や支援を行うポータルや、API・データの仕様を参照することができるカタログ、認証・認可やgBizConnectへの参加システムを管理するシステム・サービス管理等の共通的な機能等をgBizConnect Portalにて提供します。
 
 <div align="center">
-<img src="img/System.png">
+<img src="docs/img/System.png">
 </div>  
 
 ## プロジェクトロゴ  
 gBizConnectでは下記のロゴを使用します。</br>
-![logo1](img/icon_posi.png)
-![logo2](img/icon_nega.png)  
+![logo1](docs/img/icon_posi.png)
+![logo2](docs/img/icon_nega.png)  
 
 ## ライセンス  
 本ソフトウェアは、[MITライセンス](LICENSE)の元提供されています。
@@ -44,7 +44,7 @@ https://github.com/ilagnev/docker-alpine-nginx-lua
 ３．認可に係る手続の簡略化（gBizConnect Portal）の画面操作で手続が可能）
 
 <div align="center">
-<img src="img/merit.png">
+<img src="docs/img/merit.png">
 </div>    
 
 ## gBizConnect関連資料
