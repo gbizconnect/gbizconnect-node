@@ -41,7 +41,7 @@ https://github.com/ilagnev/docker-alpine-nginx-lua
 * システム視点でのメリット例と活用イメージは以下の通りです。  
 １．他システム間連携を簡易に実現（個別のIF調整や認証認可に係る処理実装等が必要ない）  
 ２．他システム間連携におけるテスト工数の縮小化（システム間はgBizConnect側で行うため、テスト範囲はNodeと内部システム間の連携部分のみ）  
-３．認可に係る手続の簡略化（gBizConnect Portal）の画面操作で手続が可能）
+３．認可に係る手続の簡略化（gBizConnect Portalの画面操作で手続が可能）
 
 <div align="center">
 <img src="docs/img/merit.png">
