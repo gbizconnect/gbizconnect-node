@@ -1,12 +1,24 @@
-FROM alpine:3.4
+FROM alpine:3.12
 
-ENV NGINX_VERSION 1.17.4
+ENV NGINX_VERSION 1.18.0
 ENV DEVEL_KIT_MODULE_VERSION 0.3.1
-ENV LUA_MODULE_VERSION 0.10.15
-ENV NJS_VERSION 0.3.7
-ENV LUA_CJSON_VERSION 2.1.0.7
-ENV LUAJIT_LIB=/usr/lib
-ENV LUAJIT_INC=/usr/include/luajit-2.0
+ENV LUA_MODULE_VERSION 0.10.19
+ENV NJS_VERSION 0.5.1
+ENV LUA_CJSON_VERSION 2.1.0.8
+ENV LUAJIT_LIB=/usr/local/lib
+ENV LUAJIT_INC=/usr/local/include/luajit-2.1
+ENV LUAJIT2_VERSION 2.1-20201027
+ENV LUA_RESTY_CORE_VERSION 0.1.21
+ENV LUA_RESTY_LRUCACHE_VERSION 0.10
+ENV LUA_RESTY_STRING_VERSION 0.12
+ENV LUA_RESTY_OPENIDC_VERSION 1.7.4
+ENV LUA_RESTY_HTTP_VERSION 0.15
+ENV LUA_RESTY_SESSION_VERSION 3.7
+ENV LUA_RESTY_JWT_VERSION 0.2.2
+ENV LUA_RESTY_HMAC_VERSION 0.05
+ENV LUA_RESTY_TEMPLATE_VERSION 2.0
+
+
 
 RUN GPG_KEYS=B0F4253373F8F6F510D42178520A9993A1C052F8 \
 	&& CONFIG="\
@@ -80,6 +92,7 @@ RUN GPG_KEYS=B0F4253373F8F6F510D42178520A9993A1C052F8 \
 	&& curl -fSL https://github.com/openresty/lua-nginx-module/archive/v$LUA_MODULE_VERSION.tar.gz -o lua.tar.gz \
 	&& curl -fSL https://github.com/nginx/njs/archive/$NJS_VERSION.tar.gz -o njs-$NJS_VERSION.tar.gz \
 	&& curl -fSL https://github.com/openresty/lua-cjson/archive/$LUA_CJSON_VERSION.tar.gz -o lua-cjson-$LUA_CJSON_VERSION.tar.gz  \
+	&& curl -fSL  https://github.com/openresty/luajit2/archive/v$LUAJIT2_VERSION.tar.gz -o luajit2-$LUAJIT2_VERSION.tar.gz  \
 	&& export GNUPGHOME="$(mktemp -d)" \
 	&& gpg --keyserver ha.pool.sks-keyservers.net --recv-keys "$GPG_KEYS" \
 	&& gpg --batch --verify nginx.tar.gz.asc nginx.tar.gz \
@@ -90,8 +103,13 @@ RUN GPG_KEYS=B0F4253373F8F6F510D42178520A9993A1C052F8 \
 	&& tar -zxC /usr/src -f lua.tar.gz \
 	&& tar -zxC /usr/src -f njs-$NJS_VERSION.tar.gz \
 	&& tar -zxC /usr/src -f lua-cjson-$LUA_CJSON_VERSION.tar.gz \
+	&& tar -zxC /usr/src -f luajit2-$LUAJIT2_VERSION.tar.gz \
+	&& rm luajit2-$LUAJIT2_VERSION.tar.gz \
 	&& rm njs-$NJS_VERSION.tar.gz lua-cjson-$LUA_CJSON_VERSION.tar.gz \
 	&& rm nginx.tar.gz ndk.tar.gz lua.tar.gz \
+	&& cd /usr/src/luajit2-$LUAJIT2_VERSION \
+    && make -j2 \
+    && make install \
 	&& cd /usr/src/nginx-$NGINX_VERSION \
 	&& ./configure $CONFIG --with-debug \
 	&& make -j$(getconf _NPROCESSORS_ONLN) \
@@ -124,31 +142,34 @@ RUN GPG_KEYS=B0F4253373F8F6F510D42178520A9993A1C052F8 \
 	&& rm -rf /usr/src/njs-$NJS_VERSION \
 	&& rm -rf /usr/src/nginx-$NGINX_VERSION \
     && tempDir="$(mktemp -d)" \
-	&& curl -fSL https://github.com/openresty/lua-resty-core/archive/v0.1.17.zip -o ${tempDir}/lua-resty-core-0.1.17.zip \
-	&& curl -fSL https://github.com/openresty/lua-resty-lrucache/archive/v0.09.zip -o ${tempDir}/lua-resty-lrucache-0.09.zip \
-	&& curl -fSL https://github.com/openresty/lua-resty-string/archive/v0.12rc1.zip -o ${tempDir}/lua-resty-string-0.12rc1.zip \
-	&& curl -fSL https://github.com/zmartzone/lua-resty-openidc/archive/v1.7.2.zip -o ${tempDir}/lua-resty-openidc-1.7.2.zip \
-	&& curl -fSL https://github.com/ledgetech/lua-resty-http/archive/v0.14.zip -o ${tempDir}/lua-resty-http-0.14.zip \
-	&& curl -fSL https://github.com/bungle/lua-resty-session/archive/v2.24.zip -o ${tempDir}/lua-resty-session.zip \
-	&& curl -fSL https://github.com/iresty/lua-resty-jwt/archive/v0.2.0.zip -o ${tempDir}/lua-resty-jwt-0.20.zip \
-	&& curl -fSL https://github.com/jkeys089/lua-resty-hmac/archive/493942b4b82e597bfbd7943e9367e480138e865a.zip -o ${tempDir}/lua-resty-hmac-0.03.zip \
-	&& unzip -oq ${tempDir}/lua-resty-core-0.1.17.zip -d ${tempDir} \
-	&& unzip -oq ${tempDir}/lua-resty-lrucache-0.09.zip -d ${tempDir} \
-	&& unzip -oq ${tempDir}/lua-resty-string-0.12rc1.zip -d ${tempDir} \
-	&& unzip -oq ${tempDir}/lua-resty-openidc-1.7.2.zip -d ${tempDir} \
-	&& unzip -oq ${tempDir}/lua-resty-http-0.14.zip -d ${tempDir} \
-	&& unzip -oq ${tempDir}/lua-resty-session.zip -d ${tempDir} \
-	&& unzip -oq ${tempDir}/lua-resty-jwt-0.20.zip -d ${tempDir} \
-	&& unzip -oq ${tempDir}/lua-resty-hmac-0.03.zip -d ${tempDir} \
+	&& curl -fSL https://github.com/openresty/lua-resty-core/archive/v$LUA_RESTY_CORE_VERSION.zip -o ${tempDir}/lua-resty-core-$LUA_RESTY_CORE_VERSION.zip \
+	&& curl -fSL https://github.com/openresty/lua-resty-lrucache/archive/v$LUA_RESTY_LRUCACHE_VERSION.zip -o ${tempDir}/lua-resty-lrucache-$LUA_RESTY_LRUCACHE_VERSION.zip \
+	&& curl -fSL https://github.com/openresty/lua-resty-string/archive/v$LUA_RESTY_STRING_VERSION.zip -o ${tempDir}/lua-resty-string-$LUA_RESTY_STRING_VERSION.zip \
+	&& curl -fSL https://github.com/zmartzone/lua-resty-openidc/archive/v$LUA_RESTY_OPENIDC_VERSION.zip -o ${tempDir}/lua-resty-openidc-$LUA_RESTY_OPENIDC_VERSION.zip \
+	&& curl -fSL https://github.com/ledgetech/lua-resty-http/archive/v$LUA_RESTY_HTTP_VERSION.zip -o ${tempDir}/lua-resty-http-$LUA_RESTY_HTTP_VERSION.zip \
+	&& curl -fSL https://github.com/bungle/lua-resty-session/archive/v$LUA_RESTY_SESSION_VERSION.zip -o ${tempDir}/lua-resty-session-$LUA_RESTY_SESSION_VERSION.zip \
+	&& curl -fSL https://github.com/cdbattags/lua-resty-jwt/archive/v$LUA_RESTY_JWT_VERSION.zip -o ${tempDir}/lua-resty-jwt-$LUA_RESTY_JWT_VERSION.zip \
+	&& curl -fSL https://github.com/jkeys089/lua-resty-hmac/archive/v$LUA_RESTY_HMAC_VERSION.zip -o ${tempDir}/lua-resty-hmac-$LUA_RESTY_HMAC_VERSION.zip \
+	&& curl -fSL https://github.com/bungle/lua-resty-template/archive/v$LUA_RESTY_TEMPLATE_VERSION.zip -o ${tempDir}/lua-resty-template-$LUA_RESTY_TEMPLATE_VERSION.zip \
+	&& unzip -oq ${tempDir}/lua-resty-core-$LUA_RESTY_CORE_VERSION.zip -d ${tempDir} \
+	&& unzip -oq ${tempDir}/lua-resty-lrucache-$LUA_RESTY_LRUCACHE_VERSION.zip -d ${tempDir} \
+	&& unzip -oq ${tempDir}/lua-resty-string-$LUA_RESTY_STRING_VERSION.zip -d ${tempDir} \
+	&& unzip -oq ${tempDir}/lua-resty-openidc-$LUA_RESTY_OPENIDC_VERSION.zip -d ${tempDir} \
+	&& unzip -oq ${tempDir}/lua-resty-http-$LUA_RESTY_HTTP_VERSION.zip -d ${tempDir} \
+	&& unzip -oq ${tempDir}/lua-resty-session-$LUA_RESTY_SESSION_VERSION.zip -d ${tempDir} \
+	&& unzip -oq ${tempDir}/lua-resty-jwt-$LUA_RESTY_JWT_VERSION.zip -d ${tempDir} \
+	&& unzip -oq ${tempDir}/lua-resty-hmac-$LUA_RESTY_HMAC_VERSION.zip -d ${tempDir} \
+	&& unzip -oq ${tempDir}/lua-resty-template-$LUA_RESTY_TEMPLATE_VERSION.zip -d ${tempDir} \
 	&& mkdir -p /usr/share/nginx/lualib \
-	&& cp -r ${tempDir}/lua-resty-core-0.1.17/lib/* /usr/share/nginx/lualib/ \
-	&& cp -r ${tempDir}/lua-resty-lrucache-0.09/lib/* /usr/share/nginx/lualib/ \
-	&& cp -r ${tempDir}/lua-resty-string-0.12rc1/lib/* /usr/share/nginx/lualib/ \
-	&& cp -r ${tempDir}/lua-resty-openidc-1.7.2/lib/* /usr/share/nginx/lualib/ \
-	&& cp -r ${tempDir}/lua-resty-http-0.14/lib/* /usr/share/nginx/lualib/ \
-	&& cp -r ${tempDir}/lua-resty-session-2.24/lib/* /usr/share/nginx/lualib/ \
-	&& cp -r ${tempDir}/lua-resty-jwt-0.2.0/lib/* /usr/share/nginx/lualib/ \
-	&& cp -r ${tempDir}/lua-resty-hmac-493942b4b82e597bfbd7943e9367e480138e865a/lib/* /usr/share/nginx/lualib/ \
+	&& cp -r ${tempDir}/lua-resty-core-$LUA_RESTY_CORE_VERSION/lib/* /usr/share/nginx/lualib/ \
+	&& cp -r ${tempDir}/lua-resty-lrucache-$LUA_RESTY_LRUCACHE_VERSION/lib/* /usr/share/nginx/lualib/ \
+	&& cp -r ${tempDir}/lua-resty-string-$LUA_RESTY_STRING_VERSION/lib/* /usr/share/nginx/lualib/ \
+	&& cp -r ${tempDir}/lua-resty-openidc-$LUA_RESTY_OPENIDC_VERSION/lib/* /usr/share/nginx/lualib/ \
+	&& cp -r ${tempDir}/lua-resty-http-$LUA_RESTY_HTTP_VERSION/lib/* /usr/share/nginx/lualib/ \
+	&& cp -r ${tempDir}/lua-resty-session-$LUA_RESTY_SESSION_VERSION/lib/* /usr/share/nginx/lualib/ \
+	&& cp -r ${tempDir}/lua-resty-jwt-$LUA_RESTY_JWT_VERSION/lib/* /usr/share/nginx/lualib/ \
+	&& cp -r ${tempDir}/lua-resty-hmac-$LUA_RESTY_HMAC_VERSION/lib/* /usr/share/nginx/lualib/ \
+	&& cp -r ${tempDir}/lua-resty-template-$LUA_RESTY_TEMPLATE_VERSION/lib/* /usr/share/nginx/lualib/ \
 	&& rm -rf ${tempDir} \
 	\
 	# Bring in gettext so we can get `envsubst`, then throw
@@ -172,7 +193,9 @@ RUN GPG_KEYS=B0F4253373F8F6F510D42178520A9993A1C052F8 \
 	\
 	# forward request and error logs to docker log collector
 	&& ln -sf /dev/stdout /var/log/nginx/access.log \
-	&& ln -sf /dev/stderr /var/log/nginx/error.log
+	&& ln -sf /dev/stderr /var/log/nginx/error.log \
+	&& apk add --no-cache ca-certificates && update-ca-certificates \
+	&& apk add shadow
 
 COPY nginx.conf /etc/nginx/nginx.conf
 COPY nginx.vh.default.conf /etc/nginx/conf.d/default.conf

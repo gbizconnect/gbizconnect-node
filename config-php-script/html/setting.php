@@ -141,11 +141,9 @@ if ($_SERVER["REQUEST_METHOD"] != "POST"){
 <!-- 保存反映form  -->
 <form  name="file1" enctype="multipart/form-data" action="setting.php" method="POST">
 <!-- MAX_FILE_SIZE は、必ず "file" input フィールドより前 -->
-<input type="hidden" name="MAX_FILE_SIZE" value="30000" >
+<input type="hidden" name="MAX_FILE_SIZE" value="30000000" >
 <!-- input 要素の name 属性の値が、$_FILES 配列のキー-->
 <input name="userfile" type="file">
-<!-- <br>現在の設定ファイル<br>  -->
-<!-- <?php echo $config; ?> -->
 <!-- 送信-->
 <br/>
 <p><input type="submit" value="保存"></p>
