@@ -266,7 +266,7 @@ gBizConnectの都度同意の詳細な説明、設定方法は、
 [gBizConnect Node 導入マニュアル](./gBizConnectNode_Manual.md)
 
 範囲（スコープ）の定義は、
-[3.2. gBizConnectのスコープ](#jump)
+[3.2. gBizConnectのスコープ](#32-gBizConnectのスコープ)
 を参照してください。
 
 ### 3.2. gBizConnectのスコープ  
@@ -375,7 +375,7 @@ APIを実装する場合の前提は以下の通りです。
 |プロトコル|httpsまたはhttp|
 |リクエストのContent-Type（POST, PUT, PATCHの場合）|application/json; charset=utf-8|
 |レスポンスのContent-Type（GET, POST, PUT, PATCHの場合）|application/json; charset=utf-8|
-|API認証|可能([[5.3. gBizConnect Nodeとシステム間の認証機能](#jump)]を参照)|
+|API認証|可能([[5.3. gBizConnect Nodeとシステム間の認証機能](#53-gBizConnect-Nodeとシステム間の認証機能)]を参照)|
 |正常時のレスポンスステータスコード（GET, PUT, PATCHの場合）|200|
 |正常時のレスポンスステータスコード（POSTの場合）|201|
 |異常時のレスポンスステータスコード|400（Bad Request）、404（Not Found）|
