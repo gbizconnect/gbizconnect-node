@@ -1,10 +1,25 @@
 {
-	"client_id":"xxxxxxxxxxxxx-xxxx-xxxx-xxxxxxxxxxxx",
-	"client_secret":"wwwwwwwwwwwww-wwww-wwww-wwwwwwwwwwww",
+	"client_id":"",
+	"client_secret":"",
+	"system_name": "SystemName",
+	"call_system_api_headers":{
+		"authorization":"Basic zzzzzzzzzzzzzzz",
+		"api_key":"apikeyApiKeyAPIKEY"
+	},
+	"meta": {
+		"add_flag": true
+	},
 	"authorized_server_list":[
 		{
-			"domain":"https://edge.datastore.jp",
-			"client_id":"yyyyyyyyyyyyy-yyyy-yyyy-yyyyyyyyyyyy"
+			"domain":"https://node.example.jp",
+			"client_id":"yyyyyyyyyyyyy-yyyy-yyyy-yyyyyyyyyyyy",
+			"name": "DatastoreSystemName",
+			"scopes": [
+				{
+					"name": "xxx",
+					"value": "yyy"
+				}
+			]
 		}
 	],
 	"authorized_client_list":[
@@ -12,31 +27,35 @@
 			"client_id":"xxxxxxxxxxxxx-xxxx-xxxx-xxxxxxxxxxxx",
 			"endpoint":[
 				{
-					"uri":"^https://edge.datastore.jp/v1/corporations$",
+					"uri":"^https://node.example.jp/v1/corporations$",
 					"method":"GET"
 				},
 				{
-					"uri":"^https://edge.datastore.jp/v1/corporations/([0-9]+)$",
+					"uri":"^https://node.example.jp/v1/corporations/([0-9]+)$",
 					"method":"GET"
 				},
 				{
-					"uri":"^https://edge.datastore.jp/v1/corporations/([0-9]+)$",
+					"uri":"^https://node.example.jp/v1/corporations/([0-9]+)$",
 					"method":"PUT"
 				},
 				{
-					"uri":"^https://edge.datastore.jp/v1/corporations/([0-9]+)$",
+					"uri":"^https://node.example.jp/v1/corporations/([0-9]+)$",
 					"method":"PATCH"
 				},
 				{
-					"uri":"^https://edge.datastore.jp/v1/corporations/([0-9]+)/notifications$",
+					"uri":"^https://node.example.jp/v1/corporations/([0-9]+)/notifications$",
 					"method":"GET"
 				},
 				{
-					"uri":"^https://edge.datastore.jp/v1/corporations/([0-9]+)/notifications$",
+					"uri":"^https://node.example.jp/v1/corporations/([0-9]+)/notifications$",
 					"method":"POST"
 				},
 				{
-					"uri":"^https://edge.datastore.jp/v1/corporations/([0-9]+)/notifications/([0-9]+)$",
+					"uri":"^https://node.example.jp/v1/corporations/([0-9]+)/notifications/([0-9]+)$",
+					"method":"GET"
+				},
+				{
+					"uri":"^https://node.example.jp/v1/xml$",
 					"method":"GET"
 				}
 			]
@@ -45,7 +64,7 @@
 			"client_id":"zzzzzzzzzzzzz-zzzz-zzzz-zzzzzzzzzzzz",
 			"endpoint":[
 				{
-					"uri":"^https://edge.datastore.jp/v1/corporations$",
+					"uri":"^https://node.example.jp/v1/corporations$",
 					"method":"GET"
 				}
 			]
@@ -53,37 +72,52 @@
 	],
 	"internal_api_mappings":[
 		{
-			"system_api_addr":"http://app.datastore.jp",
+			"system_api_addr":"http://app.example.jp",
 			"system_api_uri_extract":"^/v1/corporations$",
 			"system_api_uri_replace":"/corporations"
 		},
 		{
-			"system_api_addr":"http://app.datastore.jp",
+			"system_api_addr":"http://app.example.jp",
 			"system_api_uri_extract":"^/v1/corporations/([0-9]+)$",
 			"system_api_uri_replace":"/corporations/$1"
 		},
 		{
-			"system_api_addr":"http://app.datastore.jp",
+			"system_api_addr":"http://app.example.jp",
 			"system_api_uri_extract":"^/v1/corporations/([0-9]+)/notifications$",
 			"system_api_uri_replace":"/corporations/$1/notifications"
 		},
 		{
-			"system_api_addr":"http://app.datastore.jp",
+			"system_api_addr":"http://app.example.jp",
 			"system_api_uri_extract":"^/v1/corporations/([0-9]+)/notifications/([0-9]+)$",
 			"system_api_uri_replace":"/corporations/$1/notifications/$2"
+		},
+		{
+			"system_api_addr":"http://app.example.jp",
+			"system_api_uri_extract":"^/v1/xml$",
+			"system_api_uri_replace":"/xml"
+		}
+	],
+	"xml_converts":[
+		{
+			"xml_convert_get_flag": true,
+			"xml_convert_uri":"^/v1/xml$",
+			"xml_convert_method": "GET"
 		}
 	],
 	"json_converts":[
 		{
 			"json_convert_get_flag":true,
 			"json_convert_set_flag":false,
+			"array_convert_get_flag": true,
 			"json_convert_uri":"^/v1/corporations$",
 			"json_convert_method":"GET",
-			"json_convert_rule":"rule_corporations_list"
+			"json_convert_rule":"rule_corporations_list",
+			"array_convert_rule":"rule_corporations_list"
 		},
 		{
 			"json_convert_get_flag":true,
 			"json_convert_set_flag":false,
+			"array_convert_get_flag": false,
 			"json_convert_uri":"^/v1/corporations/([0-9]+)$",
 			"json_convert_method":"GET",
 			"json_convert_rule":"rule_corporations"
@@ -91,6 +125,7 @@
 		{
 			"json_convert_get_flag":true,
 			"json_convert_set_flag":true,
+			"array_convert_get_flag": false,
 			"json_convert_uri":"^/v1/corporations/([0-9]+)$",
 			"json_convert_method":"PUT",
 			"json_convert_rule":"rule_corporations"
@@ -98,6 +133,7 @@
 		{
 			"json_convert_get_flag":true,
 			"json_convert_set_flag":true,
+			"array_convert_get_flag": false,
 			"json_convert_uri":"^/v1/corporations/([0-9]+)$",
 			"json_convert_method":"PATCH",
 			"json_convert_rule":"rule_corporations"
@@ -105,6 +141,7 @@
 		{
 			"json_convert_get_flag":true,
 			"json_convert_set_flag":false,
+			"array_convert_get_flag": false,
 			"json_convert_uri":"^/v1/corporations/([0-9]+)/notifications$",
 			"json_convert_method":"GET",
 			"json_convert_rule":"rule_notifications_list"
@@ -112,6 +149,7 @@
 		{
 			"json_convert_get_flag":true,
 			"json_convert_set_flag":true,
+			"array_convert_get_flag": false,
 			"json_convert_uri":"^/v1/corporations/([0-9]+)/notifications$",
 			"json_convert_method":"POST",
 			"json_convert_rule":"rule_notifications"
@@ -119,605 +157,873 @@
 		{
 			"json_convert_get_flag":true,
 			"json_convert_set_flag":false,
+			"array_convert_get_flag": false,
 			"json_convert_uri":"^/v1/corporations/([0-9]+)/notifications/([0-9]+)$",
 			"json_convert_method":"GET",
 			"json_convert_rule":"rule_notifications"
 		}
 	],
+	"array_convert_rules":{
+		"rule_corporations_list":[
+			{
+				"datastore":""
+			}
+		]
+	},
 	"json_convert_rules":{
 		"rule_corporations_list":[
 			{
-				"response":"基本.宛先.法人番号",
+				"response":"Basic.Destination.Corporate number",
 				"datastore":""
 			}
 		],
 		"rule_notifications_list":[
 			{
-				"response":"内容.ID",
+				"response":"Certificate.Issuance information.ID",
 				"datastore":""
 			}
 		],
 		"rule_corporations":[
 			{
-				"response":"基本.宛先.法人番号",
+				"response":"Basic.Destination.Corporate number",
 				"datastore":""
 			},
 			{
-				"response":"基本.宛先.法人名",
+				"response":"Basic.Destination.Corporate name",
 				"datastore":""
 			},
 			{
-				"response":"基本.宛先.法人名(カナ）",
+				"response":"Basic.Destination.Corporate name Kana",
 				"datastore":""
 			},
 			{
-				"response":"基本.宛先.本社所在地",
+				"response":"Basic.Destination.Head office address1",
 				"datastore":""
 			},
 			{
-				"response":"基本.宛先.本社建物名",
+				"response":"Basic.Destination.Head office address2",
 				"datastore":""
 			},
 			{
-				"response":"基本.宛先.事業所名",
+				"response":"Basic.Destination.Head office building name",
 				"datastore":""
 			},
 			{
-				"response":"基本.宛先.事業所所在地",
+				"response":"Basic.Destination.Branch office name",
 				"datastore":""
 			},
 			{
-				"response":"基本.宛先.事業所建物名",
+				"response":"Basic.Destination.Branch office address1",
 				"datastore":""
 			},
 			{
-				"response":"基本.宛先.事業所郵便番号",
+				"response":"Basic.Destination.Branch office address2",
 				"datastore":""
 			},
 			{
-				"response":"基本.宛先.申請日",
+				"response":"Basic.Destination.Branch office building name",
 				"datastore":""
 			},
 			{
-				"response":"基本.内容.設立日",
+				"response":"Basic.Destination.Branch office postal code",
 				"datastore":""
 			},
 			{
-				"response":"基本.内容.資本金",
+				"response":"Basic.Application date.Application date",
 				"datastore":""
 			},
 			{
-				"response":"基本.内容.従業員数",
+				"response":"Basic.Content.Establishment date",
 				"datastore":""
 			},
 			{
-				"response":"基本.内容.正社員数",
+				"response":"Basic.Content.Capital",
 				"datastore":""
 			},
 			{
-				"response":"基本.連絡先.担当者部署",
+				"response":"Basic.Content.Employee number",
 				"datastore":""
 			},
 			{
-				"response":"基本.連絡先.担当者役職",
+				"response":"Basic.Content.Regular employee number",
 				"datastore":""
 			},
 			{
-				"response":"基本.連絡先.担当者名(姓)",
+				"response":"Basic.Contact information.Department",
 				"datastore":""
 			},
 			{
-				"response":"基本.連絡先.担当者名ヨミガナ(姓)",
+				"response":"Basic.Contact information.Position",
 				"datastore":""
 			},
 			{
-				"response":"基本.連絡先.担当者名(名)",
+				"response":"Basic.Contact information.Last name",
 				"datastore":""
 			},
 			{
-				"response":"基本.連絡先.担当者名ヨミガナ(名)",
+				"response":"Basic.Contact information.Last name Kana",
 				"datastore":""
 			},
 			{
-				"response":"基本.連絡先.電話番号",
+				"response":"Basic.Contact information.First name",
 				"datastore":""
 			},
 			{
-				"response":"基本.連絡先.内線",
+				"response":"Basic.Contact information.First name Kana",
 				"datastore":""
 			},
 			{
-				"response":"基本.連絡先.メールアドレス",
+				"response":"Basic.Contact information.Phone number",
 				"datastore":""
 			},
 			{
-				"response":"基本.連絡先.住所",
+				"response":"Basic.Contact information.Extension number",
 				"datastore":""
 			},
 			{
-				"response":"基本.連絡先.webフォーム",
+				"response":"Basic.Contact information.Email address",
 				"datastore":""
 			},
 			{
-				"response":"基本.発行元.法人番号",
+				"response":"Basic.Contact information.Address1",
 				"datastore":""
 			},
 			{
-				"response":"基本.発行元.法人名",
+				"response":"Basic.Contact information.Address2",
 				"datastore":""
 			},
 			{
-				"response":"基本.発行元.法人名(カナ）",
+				"response":"Basic.Contact information.Building name",
 				"datastore":""
 			},
 			{
-				"response":"基本.発行元.業種コード",
+				"response":"Basic.Contact information.Web form",
 				"datastore":""
 			},
 			{
-				"response":"基本.発行元.本社所在地",
+				"response":"Basic.Publisher.Corporate number",
 				"datastore":""
 			},
 			{
-				"response":"基本.発行元.本社建物名",
+				"response":"Basic.Publisher.Corporate name",
 				"datastore":""
 			},
 			{
-				"response":"基本.発行元.事業所名",
+				"response":"Basic.Publisher.Corporate name Kana",
 				"datastore":""
 			},
 			{
-				"response":"基本.発行元.事業所所在地",
+				"response":"Basic.Publisher.Industry code",
 				"datastore":""
 			},
 			{
-				"response":"基本.発行元.事業所建物名",
+				"response":"Basic.Publisher.Head office address1",
 				"datastore":""
 			},
 			{
-				"response":"基本.発行元.事業所郵便番号",
+				"response":"Basic.Publisher.Head office address2",
 				"datastore":""
 			},
 			{
-				"response":"基本.発行元.代表者役割",
+				"response":"Basic.Publisher.Head office building name",
 				"datastore":""
 			},
 			{
-				"response":"基本.発行元.代表者名(姓)",
+				"response":"Basic.Publisher.Branch office name",
 				"datastore":""
 			},
 			{
-				"response":"基本.発行元.代表者名(名)",
+				"response":"Basic.Publisher.Branch office address1",
 				"datastore":""
 			},
 			{
-				"response":"申請.法人番号",
+				"response":"Basic.Publisher.Branch office address2",
 				"datastore":""
 			},
 			{
-				"response":"申請.内容.名称",
+				"response":"Basic.Publisher.Branch office building name",
 				"datastore":""
 			},
 			{
-				"response":"申請.内容.概要",
+				"response":"Basic.Publisher.Branch office postal code",
 				"datastore":""
 			},
 			{
-				"response":"申請.内容.内容",
+				"response":"Basic.Publisher.Representative role",
 				"datastore":""
 			},
 			{
-				"response":"申請.内容.更新年月日",
+				"response":"Basic.Publisher.Last name of representative",
 				"datastore":""
 			},
 			{
-				"response":"財務情報.法人番号",
+				"response":"Basic.Publisher.First name of representative",
 				"datastore":""
 			},
 			{
-				"response":"財務情報.内容.決算年月日",
+				"response":"Basic.Delegation.Role",
 				"datastore":""
 			},
 			{
-				"response":"財務情報.内容.事業期間開始日",
+				"response":"Basic.Delegation.Delegator",
 				"datastore":""
 			},
 			{
-				"response":"財務情報.内容.事業期間終了日",
+				"response":"Application.Contents.Title",
 				"datastore":""
 			},
 			{
-				"response":"財務情報.内容.期末従業員数",
+				"response":"Application.Contents.Summary",
 				"datastore":""
 			},
 			{
-				"response":"財務情報.内容.資産合計",
+				"response":"Application.Contents.Content",
 				"datastore":""
 			},
 			{
-				"response":"財務情報.内容.流動資産合計",
+				"response":"Application.Contents.Last updated",
 				"datastore":""
 			},
 			{
-				"response":"財務情報.内容.現金及び預金",
+				"response":"Finance[].Other.Corporate number",
 				"datastore":""
 			},
 			{
-				"response":"財務情報.内容.受取手形",
+				"response":"Finance[].Content.Fiscal date",
 				"datastore":""
 			},
 			{
-				"response":"財務情報.内容.売掛金",
+				"response":"Finance[].Content.Business period start date",
 				"datastore":""
 			},
 			{
-				"response":"財務情報.内容.有価証券",
+				"response":"Finance[].Content.Business period end date",
 				"datastore":""
 			},
 			{
-				"response":"財務情報.内容.棚卸資産",
+				"response":"Finance[].Content.Number of employees at end of period",
 				"datastore":""
 			},
 			{
-				"response":"財務情報.内容.その他流動資産合計",
+				"response":"Finance[].Content.Total assets",
 				"datastore":""
 			},
 			{
-				"response":"財務情報.内容.前払金",
+				"response":"Finance[].Content.Total current assets",
 				"datastore":""
 			},
 			{
-				"response":"財務情報.内容.短期貸付金",
+				"response":"Finance[].Content.Cash and deposits",
 				"datastore":""
 			},
 			{
-				"response":"財務情報.内容.貸倒引当金",
+				"response":"Finance[].Content.Notes receivable",
 				"datastore":""
 			},
 			{
-				"response":"財務情報.内容.固定資産合計",
+				"response":"Finance[].Content.Accounts receivable",
 				"datastore":""
 			},
 			{
-				"response":"財務情報.内容.有形固定資産合計",
+				"response":"Finance[].Content.Securities",
 				"datastore":""
 			},
 			{
-				"response":"財務情報.内容.土地",
+				"response":"Finance[].Content.Inventories",
 				"datastore":""
 			},
 			{
-				"response":"財務情報.内容.無形固定資産合計",
+				"response":"Finance[].Content.Total other current assets",
 				"datastore":""
 			},
 			{
-				"response":"財務情報.内容.その他固定資産合計",
+				"response":"Finance[].Content.Advance payment",
 				"datastore":""
 			},
 			{
-				"response":"財務情報.内容.貸付金合計",
+				"response":"Finance[].Content.Short-term loans receivable",
 				"datastore":""
 			},
 			{
-				"response":"財務情報.内容.負債合計",
+				"response":"Finance[].Content.Allowance for doubtful accounts",
 				"datastore":""
 			},
 			{
-				"response":"財務情報.内容.流動負債合計",
+				"response":"Finance[].Content.Total fixed assets",
 				"datastore":""
 			},
 			{
-				"response":"財務情報.内容.支払手形",
+				"response":"Finance[].Content.Total tangible fixed assets",
 				"datastore":""
 			},
 			{
-				"response":"財務情報.内容.買掛金",
+				"response":"Finance[].Content.Land",
 				"datastore":""
 			},
 			{
-				"response":"財務情報.内容.短期借入金",
+				"response":"Finance[].Content.Total intangible assets",
 				"datastore":""
 			},
 			{
-				"response":"財務情報.内容.その他流動負債合計",
+				"response":"Finance[].Content.Total other fixed assets",
 				"datastore":""
 			},
 			{
-				"response":"財務情報.内容.未払金",
+				"response":"Finance[].Content.Total loan",
 				"datastore":""
 			},
 			{
-				"response":"財務情報.内容.前受金",
+				"response":"Finance[].Content.Total debt",
 				"datastore":""
 			},
 			{
-				"response":"財務情報.内容.預り金",
+				"response":"Finance[].Content.Total current liabilities",
 				"datastore":""
 			},
 			{
-				"response":"財務情報.内容.固定負債合計",
+				"response":"Finance[].Content.Bills payable",
 				"datastore":""
 			},
 			{
-				"response":"財務情報.内容.長期借入金",
+				"response":"Finance[].Content.Accounts payable",
 				"datastore":""
 			},
 			{
-				"response":"財務情報.内容.純資産合計",
+				"response":"Finance[].Content.Short-term debt",
 				"datastore":""
 			},
 			{
-				"response":"財務情報.内容.資本金",
+				"response":"Finance[].Content.Total other current liabilities",
 				"datastore":""
 			},
 			{
-				"response":"財務情報.内容.資本準備金",
+				"response":"Finance[].Content.Other payables",
 				"datastore":""
 			},
 			{
-				"response":"財務情報.内容.売上高",
+				"response":"Finance[].Content.Advance received",
 				"datastore":""
 			},
 			{
-				"response":"財務情報.内容.売上原価",
+				"response":"Finance[].Content.Deposit",
 				"datastore":""
 			},
 			{
-				"response":"財務情報.内容.売上原価内減価償却費",
+				"response":"Finance[].Content.Total fixed liabilities",
 				"datastore":""
 			},
 			{
-				"response":"財務情報.内容.労務費",
+				"response":"Finance[].Content.Long-term liabilities",
 				"datastore":""
 			},
 			{
-				"response":"財務情報.内容.売上総利益",
+				"response":"Finance[].Content.Total net assets",
 				"datastore":""
 			},
 			{
-				"response":"財務情報.内容.販売費及び一般管理費",
+				"response":"Finance[].Content.Capital",
 				"datastore":""
 			},
 			{
-				"response":"財務情報.内容.販管費内減価償却費",
+				"response":"Finance[].Content.Capital reserves",
 				"datastore":""
 			},
 			{
-				"response":"財務情報.内容.人件費",
+				"response":"Finance[].Content.Revenues",
 				"datastore":""
 			},
 			{
-				"response":"財務情報.内容.営業利益",
+				"response":"Finance[].Content.Costs",
 				"datastore":""
 			},
 			{
-				"response":"財務情報.内容.営業外収益",
+				"response":"Finance[].Content.Depreciation within costs",
 				"datastore":""
 			},
 			{
-				"response":"財務情報.内容.営業外費用",
+				"response":"Finance[].Content.Labor cost",
 				"datastore":""
 			},
 			{
-				"response":"財務情報.内容.経常利益",
+				"response":"Finance[].Content.Gross profit",
 				"datastore":""
 			},
 			{
-				"response":"財務情報.内容.特別利益",
+				"response":"Finance[].Content.Selling general and administrative expenses",
 				"datastore":""
 			},
 			{
-				"response":"財務情報.内容.特別損失",
+				"response":"Finance[].Content.Depreciation within SG & A",
 				"datastore":""
 			},
 			{
-				"response":"財務情報.内容.税引前当期純利益",
+				"response":"Finance[].Content.Personnel expenses",
 				"datastore":""
 			},
 			{
-				"response":"財務情報.内容.当期純利益",
+				"response":"Finance[].Content.Operating income",
+				"datastore":""
+			},
+			{
+				"response":"Finance[].Content.Non-operating income",
+				"datastore":""
+			},
+			{
+				"response":"Finance[].Content.Non-operating expenses",
+				"datastore":""
+			},
+			{
+				"response":"Finance[].Content.Ordinary income",
+				"datastore":""
+			},
+			{
+				"response":"Finance[].Content.Extraordinary benefit",
+				"datastore":""
+			},
+			{
+				"response":"Finance[].Content.Extraordinary loss",
+				"datastore":""
+			},
+			{
+				"response":"Finance[].Content.Income before income taxes",
+				"datastore":""
+			},
+			{
+				"response":"Finance[].Content.Net income",
+				"datastore":""
+			},
+			{
+				"response":"Officer list[].Other.Corporate number",
+				"datastore":""
+			},
+			{
+				"response":"Officer list[].Content.Officer list entry date",
+				"datastore":""
+			},
+			{
+				"response":"Officer list[].Content.Position",
+				"datastore":""
+			},
+			{
+				"response":"Officer list[].Content.Last name",
+				"datastore":""
+			},
+			{
+				"response":"Officer list[].Content.Last name Kana",
+				"datastore":""
+			},
+			{
+				"response":"Officer list[].Content.First name",
+				"datastore":""
+			},
+			{
+				"response":"Officer list[].Content.First name Kana",
+				"datastore":""
+			},
+			{
+				"response":"Officer list[].Content.Birthday",
+				"datastore":""
+			},
+			{
+				"response":"Officer list[].Content.Sex",
+				"datastore":""
+			},
+			{
+				"response":"Officer list[].Content.List of professions.Code",
+				"datastore":""
+			},
+			{
+				"response":"Officer list[].Content.List of professions.Name",
+				"datastore":""
+			},
+			{
+				"response":"Officer list[].Content.List of professions.Registration number",
+				"datastore":""
+			},
+			{
+				"response":"Officer list[].Content.List of professions.Registration date",
+				"datastore":""
+			},
+			{
+				"response":"Officer list[].Content.List of professions.Expiration date",
+				"datastore":""
+			},
+			{
+				"response":"Officer list[].Content.List of professions.Office name",
+				"datastore":""
+			},
+			{
+				"response":"Officer list[].Content.List of professions.Office Address1",
+				"datastore":""
+			},
+			{
+				"response":"Officer list[].Content.List of professions.Office Address2",
+				"datastore":""
+			},
+			{
+				"response":"Officer list[].Content.List of professions.Office building name",
+				"datastore":""
+			},
+			{
+				"response":"Shareholder list[].Other.Corporate number",
+				"datastore":""
+			},
+			{
+				"response":"Shareholder list[].Content.Shareholder list entry date",
+				"datastore":""
+			},
+			{
+				"response":"Shareholder list[].Content.Corporate name or investor name",
+				"datastore":""
+			},
+			{
+				"response":"Shareholder list[].Content.Corporate name or investor name Kana",
+				"datastore":""
+			},
+			{
+				"response":"Shareholder list[].Content.Last name of investor",
+				"datastore":""
+			},
+			{
+				"response":"Shareholder list[].Content.Last name of investor Kana",
+				"datastore":""
+			},
+			{
+				"response":"Shareholder list[].Content.First name of investor",
+				"datastore":""
+			},
+			{
+				"response":"Shareholder list[].Content.First name of investor Kana",
+				"datastore":""
+			},
+			{
+				"response":"Shareholder list[].Content.Corporate number",
+				"datastore":""
+			},
+			{
+				"response":"Shareholder list[].Content.Address1",
+				"datastore":""
+			},
+			{
+				"response":"Shareholder list[].Content.Address2",
+				"datastore":""
+			},
+			{
+				"response":"Shareholder list[].Content.Building name",
+				"datastore":""
+			},
+			{
+				"response":"Shareholder list[].Content.Investment ratio",
+				"datastore":""
+			},
+			{
+				"response":"Shareholder list[].Content.Large company classification",
+				"datastore":""
+			},
+			{
+				"response":"Office list[].Other.Corporate number",
+				"datastore":""
+			},
+			{
+				"response":"Office list[].Content.Office list entry date",
+				"datastore":""
+			},
+			{
+				"response":"Office list[].Content.Office number",
+				"datastore":""
+			},
+			{
+				"response":"Office list[].Content.Branch office name",
+				"datastore":""
+			},
+			{
+				"response":"Office list[].Content.Branch office address1",
+				"datastore":""
+			},
+			{
+				"response":"Office list[].Content.Branch office address2",
+				"datastore":""
+			},
+			{
+				"response":"Office list[].Content.Building name",
+				"datastore":""
+			},
+			{
+				"response":"List of professions[].Content.Code",
+				"datastore":""
+			},
+			{
+				"response":"List of professions[].Content.Name",
+				"datastore":""
+			},
+			{
+				"response":"List of professions[].Content.Registration number",
+				"datastore":""
+			},
+			{
+				"response":"List of professions[].Content.Last name",
+				"datastore":""
+			},
+			{
+				"response":"List of professions[].Content.Last name kana",
+				"datastore":""
+			},
+			{
+				"response":"List of professions[].Content.First name",
+				"datastore":""
+			},
+			{
+				"response":"List of professions[].Content.First name kana",
+				"datastore":""
+			},
+			{
+				"response":"List of professions[].Content.Birthday",
+				"datastore":""
+			},
+			{
+				"response":"List of professions[].Content.Registration date",
+				"datastore":""
+			},
+			{
+				"response":"List of professions[].Content.Expiration date",
+				"datastore":""
+			},
+			{
+				"response":"List of professions[].Content.Office name",
+				"datastore":""
+			},
+			{
+				"response":"List of professions[].Content.Office location1",
+				"datastore":""
+			},
+			{
+				"response":"List of professions[].Content.Office location2",
+				"datastore":""
+			},
+			{
+				"response":"List of professions[].Content.Office building name",
 				"datastore":""
 			}
 		],
 		"rule_notifications":[
 			{
-				"response":"宛先.法人番号",
+				"response":"Certificate.Destination.Corporate number",
 				"datastore":""
 			},
 			{
-				"response":"宛先.商号又は名称",
+				"response":"Certificate.Destination.Corporate name",
 				"datastore":""
 			},
 			{
-				"response":"宛先.商号又は名称(カナ)",
+				"response":"Certificate.Destination.Corporate name Kana",
 				"datastore":""
 			},
 			{
-				"response":"宛先.本社住所",
+				"response":"Certificate.Destination.Head office address1",
 				"datastore":""
 			},
 			{
-				"response":"宛先.本社建物名",
+				"response":"Certificate.Destination.Head office address2",
 				"datastore":""
 			},
 			{
-				"response":"宛先.事業所名",
+				"response":"Certificate.Destination.Head office building name",
 				"datastore":""
 			},
 			{
-				"response":"宛先.事業所住所",
+				"response":"Certificate.Destination.Branch office name",
 				"datastore":""
 			},
 			{
-				"response":"宛先.事業所建物名",
+				"response":"Certificate.Destination.Branch office address1",
 				"datastore":""
 			},
 			{
-				"response":"宛先.代表者役割",
+				"response":"Certificate.Destination.Branch office address2",
 				"datastore":""
 			},
 			{
-				"response":"宛先.代表者名(姓)",
+				"response":"Certificate.Destination.Branch office building name",
 				"datastore":""
 			},
 			{
-				"response":"宛先.代表者名(名)",
+				"response":"Certificate.Destination.Branch office postal code",
 				"datastore":""
 			},
 			{
-				"response":"内容.公表組織の法人番号の種類",
+				"response":"Certificate.Destination.Role of representative",
 				"datastore":""
 			},
 			{
-				"response":"内容.発行組織の名称",
+				"response":"Certificate.Destination.Last name of representative",
 				"datastore":""
 			},
 			{
-				"response":"内容.公表組織の法人番号",
+				"response":"Certificate.Destination.First name of representative",
 				"datastore":""
 			},
 			{
-				"response":"内容.公表組織の名称",
+				"response":"Certificate.Contents.Types of corporate numbers of public organizations",
 				"datastore":""
 			},
 			{
-				"response":"内容.担当者部署",
+				"response":"Certificate.Contents.Name of issuing organization",
 				"datastore":""
 			},
 			{
-				"response":"内容.担当者役職",
+				"response":"Certificate.Contents.Corporate number of public organization",
 				"datastore":""
 			},
 			{
-				"response":"内容.担当者名(姓)",
+				"response":"Certificate.Contents.Name of public organization",
 				"datastore":""
 			},
 			{
-				"response":"内容.担当者名(名)",
+				"response":"Certificate.Contents.Department",
 				"datastore":""
 			},
 			{
-				"response":"内容.電話番号",
+				"response":"Certificate.Contents.Position",
 				"datastore":""
 			},
 			{
-				"response":"内容.内線",
+				"response":"Certificate.Contents.Last name",
 				"datastore":""
 			},
 			{
-				"response":"内容.メールアドレス",
+				"response":"Certificate.Contents.First name",
 				"datastore":""
 			},
 			{
-				"response":"内容.証明日",
+				"response":"Certificate.Contents.Phone number",
 				"datastore":""
 			},
 			{
-				"response":"内容.ID",
+				"response":"Certificate.Contents.Extension number",
 				"datastore":""
 			},
 			{
-				"response":"内容.証明書名",
+				"response":"Certificate.Contents.Email address",
 				"datastore":""
 			},
 			{
-				"response":"内容.対象",
+				"response":"Certificate.Issuance information.Issue date",
 				"datastore":""
 			},
 			{
-				"response":"内容.値",
+				"response":"Certificate.Issuance information.ID",
 				"datastore":""
 			},
 			{
-				"response":"内容.証明開始日",
+				"response":"Certificate.Notification content.Name",
 				"datastore":""
 			},
 			{
-				"response":"内容.証明終了日",
+				"response":"Certificate.Notification content.Target",
 				"datastore":""
 			},
 			{
-				"response":"内容.備考",
+				"response":"Certificate.Notification content.Value",
 				"datastore":""
 			},
 			{
-				"response":"連絡先.担当者部署",
+				"response":"Certificate.Notification content.Start date",
 				"datastore":""
 			},
 			{
-				"response":"連絡先.担当者役職",
+				"response":"Certificate.Notification content.End date",
 				"datastore":""
 			},
 			{
-				"response":"連絡先.担当者名(姓)",
+				"response":"Certificate.Notification content.Remarks",
 				"datastore":""
 			},
 			{
-				"response":"連絡先.担当者名ヨミガナ(姓)",
+				"response":"Certificate.Contact information.Department",
 				"datastore":""
 			},
 			{
-				"response":"連絡先.担当者名(名)",
+				"response":"Certificate.Contact information.Position",
 				"datastore":""
 			},
 			{
-				"response":"連絡先.担当者名ヨミガナ(名)",
+				"response":"Certificate.Contact information.Last name",
 				"datastore":""
 			},
 			{
-				"response":"連絡先.電話番号",
+				"response":"Certificate.Contact information.Last name Kana",
 				"datastore":""
 			},
 			{
-				"response":"連絡先.内線",
+				"response":"Certificate.Contact information.First name",
 				"datastore":""
 			},
 			{
-				"response":"連絡先.メールアドレス",
+				"response":"Certificate.Contact information.First name Kana",
 				"datastore":""
 			},
 			{
-				"response":"連絡先.住所",
+				"response":"Certificate.Contact information.Phone number",
 				"datastore":""
 			},
 			{
-				"response":"連絡先.webフォーム",
+				"response":"Certificate.Contact information.Extension number",
 				"datastore":""
 			},
 			{
-				"response":"発行先.法人番号",
+				"response":"Certificate.Contact information.Email address",
 				"datastore":""
 			},
 			{
-				"response":"発行先.商号又は名称",
+				"response":"Certificate.Contact information.Address",
 				"datastore":""
 			},
 			{
-				"response":"発行先.商号又は名称(カナ)",
+				"response":"Certificate.Contact information.Web form",
 				"datastore":""
 			},
 			{
-				"response":"発行先.本社住所",
+				"response":"Certificate.Publisher.Corporate number",
 				"datastore":""
 			},
 			{
-				"response":"発行先.本社建物名",
+				"response":"Certificate.Publisher.Corporate name",
 				"datastore":""
 			},
 			{
-				"response":"発行先.事業所名",
+				"response":"Certificate.Publisher.Corporate name Kana",
 				"datastore":""
 			},
 			{
-				"response":"発行先.事業所住所",
+				"response":"Certificate.Publisher.Head office address1",
 				"datastore":""
 			},
 			{
-				"response":"発行先.事業所建物名",
+				"response":"Certificate.Publisher.Head office address2",
 				"datastore":""
 			},
 			{
-				"response":"発行先.事業所郵便番号",
+				"response":"Certificate.Publisher.Head office building name",
+				"datastore":""
+			},
+			{
+				"response":"Certificate.Publisher.Branch office name",
+				"datastore":""
+			},
+			{
+				"response":"Certificate.Publisher.Branch office address1",
+				"datastore":""
+			},
+			{
+				"response":"Certificate.Publisher.Branch office address2",
+				"datastore":""
+			},
+			{
+				"response":"Certificate.Publisher.Branch office building name",
+				"datastore":""
+			},
+			{
+				"response":"Certificate.Publisher.Branch office postal code",
 				"datastore":""
 			}
 		]
@@ -745,13 +1051,15 @@
 		}
 	],
 	"oauth":{
-		"oauth_token_introspect_endpoint":"https://xxx.go.jp/auth/realms/gbizconnect/protocol/openid-connect/token/introspect",
-		"oauth_token_endpoint":"https://xxx.go.jp/auth/realms/gbizconnect/protocol/openid-connect/token",
-		"discovery":"https://xxx.go.jp/auth/realms/gbizconnect/.well-known/openid-configuration"
+		"oauth_token_introspect_endpoint":"https://auth-node.connect.gbiz.go.jp/auth/realms/gbizconnect-node/protocol/openid-connect/token/introspect",
+		"oauth_token_endpoint":"https://auth-node.connect.gbiz.go.jp/auth/realms/gbizconnect-node/protocol/openid-connect/token",
+		"discovery":"https://auth-node.connect.gbiz.go.jp/auth/realms/gbizconnect-node/.well-known/openid-configuration"
 	},
 	"openid_connect":{
-		"no_consent_url":"https://app.denshi.jp/no_consent",
-		"post_authorized_url":"https://app.denshi.jp/post_authorized",
-		"redirect_uri":"https://edge.denshi.jp/v1/auth/redirect_uri"
+		"no_consent_url":"https://app.example.jp/no_consent",
+		"post_authorized_url":"https://app.example.jp/post_authorized",
+		"redirect_uri":"https://node.example.jp/v1/auth/redirect_uri",
+		"scope_authenticate_url":"https://node.example.jp/v1/auth",
+		"scope_no_authenticate_url":"https://app.example.jp/no_authenticate"
 	}
 }

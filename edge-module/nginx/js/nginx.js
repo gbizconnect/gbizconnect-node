@@ -4,6 +4,7 @@
  * @param {Object} r
  * @return {string} s
  * */
+
 function summary(r) {
     var a, s, h, value;
     s = "";
@@ -56,6 +57,8 @@ var GET_SET_FLAG = {
     'SET': 2,
 };
 
+/** スコープマッピングの定数 */
+var SCOPE_MAPPINGS = [{scope:'basic', data_name:'Basic'},{scope:'application', data_name:'Application'},{scope:'finance', data_name:'Finance'},{scope:'officer_list', data_name:'Officer list'},{scope:'shareholder_list', data_name:'Shareholder list'},{scope:'office_list', data_name:'Office list'},{scope:'list_of_professions', data_name:'List of professions'},{scope:'certificate', data_name:'Certificate'}];
 /** クライアントエラーステータスコードメッセージ */
 var CLIENT_ERROR_CODE_MESSAGES = {
     "400": "Bad Request",
@@ -97,7 +100,6 @@ function getServerErrorResponse(r) {
 }
 
 /**
- * データストアを呼び出す
  * @private
  * @param {Object} r
  * @param {string} errorCodeMessage
@@ -161,6 +163,20 @@ function toJSON(status, responseBody) {
 }
 
 /**
+ * 
+ */
+function jsonStringifyFromObject(object) {
+    return JSON.stringify(object, undefined, "\t");
+}
+
+/**
+ * 
+ */
+function jsonStringifyFromJsonString(jsonString) {
+    return jsonStringifyFromObject(JSON.parse(jsonString));
+}
+
+/**
  * 設定ファイルから読み込んだcall_apiマッピング
  * nginxに変数のセットするため,js_set で呼び出される
  * @param {Object} r
@@ -191,6 +207,13 @@ function get_call_system_api(r) {
  * 設定ファイルを読み込む
  */
 var config_json = getConfig();
+
+/**
+ * 設定ファイル取得
+ * @private
+ */
+var source_client_id = "-";
+var desitination_client_id = "-";
 
 /**
  * 設定ファイル取得
@@ -234,6 +257,23 @@ function create_parameter(obj) {
 }
 
 /**
+ * decodeURIComponent に加え、+ をスペースに変更
+ * URIの定義はRFC2396、RFC3986と存在するが
+ * njsはRFC2396までしか対応していないため 
+ * RFC3986によるエンコードへも対応できるようにするメソッド
+ * @private
+ * @param {string} str
+ * @return {string}
+ */
+function decodeURIComponentForRFC3986(str) {
+    if (!isEmpty(str)) {
+        str = str.replace(/\+/g, "%20");
+    }
+    str = decodeURIComponent(str);
+    return str;
+}
+
+/**
  * POST送信時の
  * リクエストボディをデコードする
  * @private
@@ -263,15 +303,18 @@ function decode_requestBody(r) {
             parameterArray[i++] = "This parameter[" + value + "] contains multiple equals.";
         }
         if (keyValue_array[0] === "header") {
-            var headerArray = decodeURIComponent(keyValue_array[1]).split(':');
-            if (typeof (requestBody_json[decodeURIComponent(headerArray[0].toLowerCase())]) === "undefined") {
-                requestBody_json[decodeURIComponent(headerArray[0].toLowerCase())] = decodeURIComponent(headerArray[1]).trim();
+            var headerArray = decodeURIComponentForRFC3986(keyValue_array[1]).split(':');
+            if ( keyValue_array[1].match('\n|\r|%0A|%0D') !== null) {    
+                parameterArray[i++] = "This header parameter[" + headerArray[0] + "] contains invalid characters(" + keyValue_array[1].match('\n|\r|%0A|%0D') + ")";
+            }
+            if (typeof (requestBody_json[decodeURIComponentForRFC3986(headerArray[0].toLowerCase())]) === "undefined") {
+                requestBody_json[decodeURIComponentForRFC3986(headerArray[0].toLowerCase())] = decodeURIComponentForRFC3986(headerArray[1]).trim();
             } else {
                 parameterArray[i++] = "This header parameter[" + headerArray[0] + "] has multiple keys.";
             }
         } else {
-            if (typeof (requestBody_json[decodeURIComponent(keyValue_array[0])]) === "undefined") {
-                requestBody_json[decodeURIComponent(keyValue_array[0])] = decodeURIComponent(keyValue_array[1]);
+            if (typeof (requestBody_json[decodeURIComponentForRFC3986(keyValue_array[0])]) === "undefined") {
+                requestBody_json[decodeURIComponentForRFC3986(keyValue_array[0])] = decodeURIComponentForRFC3986(keyValue_array[1]);
             } else {
                 parameterArray[i++] = "This parameter[" + keyValue_array[0] + "] has multiple keys.";
             }
@@ -281,21 +324,72 @@ function decode_requestBody(r) {
     if (parameterArray.length > 0) {
         return new EdgeError(400, parameterArray.join());
     }
-
+    return requestBody_json;
+}
+/**
+ * POST送信時の
+ * リクエストボディをチェックする
+ * @private
+ * @param {Object} requestBody_json
+ * @return {null|EdgeError}
+ */
+function check_requestBody(requestBody_json) {
     // リクエストボディのチェック
+    var client_id = requestBody_json.client_id;
     var call_api_uri = requestBody_json.call_api;
+    call_api_uri = addDefaultPort(call_api_uri);
     var call_api_method = requestBody_json.method;
     var call_api_content_type = requestBody_json["content-type"];
     var call_api_body = requestBody_json.body;
 
-    // call_api
+    // client_id
     // key なし
-    if (typeof (call_api_uri) === "undefined") {
-        return new EdgeError(400, "This parameter[call_api] is missing.");
-    }
-    // value 不正:http https ではない
-    if (!call_api_uri.match(new RegExp("^https?://", ""))) {
-        return new EdgeError(400, "This parameter[call_api] must start with http or https.[" + requestBody_json.call_api + "]");
+    if (typeof (client_id) === "undefined") {
+        // call_api
+        // key なし
+        if (typeof (call_api_uri) === "undefined") {
+            return new EdgeError(400, "This parameter[call_api] is missing.");
+        } else  if (!call_api_uri.match(new RegExp("^https?://", ""))) {
+        // value 不正:http https ではない
+            return new EdgeError(400, "This parameter [call_api] must start with \"https\" when the parameter [client_id] is missing.[" + requestBody_json.call_api + "]");
+        }
+        var domain = call_api_uri.match(/^(https?:\/{2,}.*?)\/.*/)[1];
+        var authorized_server_list = config_json["authorized_server_list"];
+        var flag = 0;
+        authorized_server_list.forEach(function (authorized_server) {
+            var authorized_server_domain = addDefaultPort(authorized_server.domain);
+            if (domain === authorized_server_domain) {
+                requestBody_json.client_id = authorized_server.client_id;
+                flag = 1;
+            }
+        });
+        if (flag === 0) {
+            return new EdgeError(400, "This domain is not included in Config File(authorized_server_list).[" + domain + "]");
+        }
+        requestBody_json.call_api = call_api_uri.match(/^https?:\/{2,}.*?(\/.*)/)[1];
+    } else {
+    // client_id
+    // key あり
+        if (typeof (call_api_uri) === "undefined") {
+        // call_api
+        // key なし
+            return new EdgeError(400, "This parameter[call_api] is missing.");
+        } else  if (!call_api_uri.match(new RegExp("^/", ""))) {
+        // value 不正:"/"始まりではない
+            return new EdgeError(400, "This parameter [call_api] must start with slash when the parameter [client_id] is added.[" + requestBody_json.call_api + "]");
+        }
+        
+        // 許可されているidか
+        var isIncludedAuthorizedServer = false;
+        var authorized_server_list = config_json["authorized_server_list"];
+        authorized_server_list.forEach(function (authorized_server) {
+            if (client_id === authorized_server.client_id) {
+                isIncludedAuthorizedServer = true;
+            }
+        });
+        if (!isIncludedAuthorizedServer) {
+            return new EdgeError(400, "This parameter[client_id] is not included in Config File(authorized_server_list).");
+        }
     }
 
     // method
@@ -330,7 +424,7 @@ function decode_requestBody(r) {
             JSON.parse(call_api_body);
         }
     } catch (error) {
-        return new EdgeError(400, "This parameter[body] is not JSON.");
+        return new EdgeError(400, "This parameter[body] is not JSON.(" + call_api_body + ")");
     }
 
     return requestBody_json;
@@ -403,6 +497,48 @@ function getOAuth2TokenEndpoint() {
 }
 
 /**
+ * システムのAuthorizationヘッダーに登録する値を取得 
+ * @private
+ * @return {string} 
+ */
+function getCallSystemApiAuthorization() {
+    return nvl(config_json.call_system_api_headers.authorization, "");
+}
+
+/**
+ * システムのAPIキーを使用した、独自のヘッダーに登録する値を取得 
+ * @private
+ * @return {string} 
+ */
+function getCallSystemApiApiKey() {
+    return nvl(config_json.call_system_api_headers.api_key, "");
+}
+
+/**
+ * アクセスログ出力
+ * @private
+ * @param {Object} r
+ */
+function create_log_nginx_variables_str(r) {
+    var log_nginx_variables_str = "";
+    var log_nginx_variables = config_json.log_nginx_variables;
+    if (typeof (log_nginx_variables) === "undefined") {
+        throw new SyntaxError('log_nginx_variables null ');
+    }
+    // 全出力
+    log_nginx_variables.forEach(function (log_nginx_variable_obj) {
+        // ","は中身によらず追加
+        log_nginx_variables_str += ",";
+        if (log_nginx_variable_obj["flag"] === true) {
+            // trueならば追加
+            var log_nginx_variable_name = log_nginx_variable_obj["log_nginx_variable"];
+            log_nginx_variables_str += r.variables[log_nginx_variable_name];
+        }
+    });
+    return log_nginx_variables_str;
+}
+
+/**
  * アクセスログ出力
  * @private
  * @param {Object} r
@@ -424,11 +560,10 @@ function print_accesslog(r, rp_flag, from_uri, to_uri, method, msg) {
     if (typeof (to_uri) === "undefined") {
         throw new SyntaxError('to_uri null.');
     }
-    // 共通
+// 共通
     // API参照側とAPI提供側で分ける
     var request_id;
     if (rp_flag === RP_FLAG.REFERENCE) {
-        // API参照側:reference
         request_id = r.variables.request_id;
     } else {
         // API提供側:provision
@@ -440,32 +575,42 @@ function print_accesslog(r, rp_flag, from_uri, to_uri, method, msg) {
     // アクセス先ドメインとポート uriからprotocolとuriを削除
     var to_addr_port = to_uri.replace(/https?:\/\//, "").replace(/\/.*/, "");
 
-    // ログの設定変更機能
-    var log_nginx_variables_str = "";
-    var log_nginx_variables = config_json.log_nginx_variables;
-    if (typeof (log_nginx_variables) === "undefined") {
-        throw new SyntaxError('log_nginx_variables null ');
-    }
-    // 全出力
-    log_nginx_variables.forEach(function (log_nginx_variable_obj) {
-        // ","は中身によらず追加
-        log_nginx_variables_str += ",";
-        if (log_nginx_variable_obj["flag"] === true) {
-            // trueならば追加
-            var log_nginx_variable_name = log_nginx_variable_obj["log_nginx_variable"];
-            log_nginx_variables_str += r.variables[log_nginx_variable_name];
-        }
-    });
+    var log_nginx_variables_str = create_log_nginx_variables_str(r);
 
     // 引数の検査
     if (arguments.length === arg_len_no_success) {
         // 引数4つ目は_access_point(msg)
-        r.log(",Info," + request_id + "," + formatDate(new Date()) + ",-,-,-,-," + to_uri + log_nginx_variables_str);
+        r.log(",Info," + request_id + "," + source_client_id + "," + desitination_client_id + "," + formatDate(new Date()) + ",-,-,-,-,\"" + to_uri.replace(/"/g, "\"\"") + "\"" +  log_nginx_variables_str);
     } else if (arguments.length === arg_len) {
         // ログ出力
-        r.log(",Info," + request_id + "," + formatDate(new Date()) + "," + from_addr_port + "," + to_addr_port + "," + to_uri + "," + method + "," + msg + log_nginx_variables_str);
+        r.log(",Info," + request_id + "," + source_client_id + "," + desitination_client_id + "," + formatDate(new Date()) + "," + from_addr_port + "," + to_addr_port + "," + to_uri + "," + method + ",\"" + msg.replace(/"/g, "\"\"") + "\"" +  log_nginx_variables_str);
     }
 }
+
+/**
+ * エラーログ出力
+ * @private
+ * @param {Object} r
+ * @param {string} rp_flag API参照側:REFERENCE:1 API提供側:PROVISION:2
+ * @param {string} errorName エラー名
+ */
+function print_warnlog(r, rp_flag, msg) {
+
+    // 共通
+    // API参照側とAPI提供側で分ける
+    var request_id;
+    if (rp_flag === RP_FLAG.REFERENCE) {
+        // API参照側:reference
+            request_id = r.variables.request_id;
+        } else {
+        // API提供側:provision
+        request_id = r.variables.http_x_request_id;
+        }
+
+    var log_nginx_variables_str = create_log_nginx_variables_str(r);
+
+    r.warn(",Warn," + request_id + "," + source_client_id + "," + desitination_client_id + "," + formatDate(new Date()) +  ",-,-,-,-,\"" + msg.replace(/"/g, "\"\"") + "\"" + log_nginx_variables_str);
+        }
 
 /**
  * エラーログ出力
@@ -476,17 +621,51 @@ function print_accesslog(r, rp_flag, from_uri, to_uri, method, msg) {
  * @param {string} errorDetail エラー詳細 stacktraceや説明(description)
  */
 function print_errorlog(r, rp_flag, errorName, errorDetail) {
-    // 共通
-    // API参照側とAPI提供側で分ける
+
+        //accessログと同じように
+                // API提供側:provision
     var request_id;
     if (rp_flag === RP_FLAG.REFERENCE) {
         // API参照側:reference
         request_id = r.variables.request_id;
-    } else {
+                } else {
         // API提供側:provision
-        request_id = r.variables.http_x_request_id;
+                request_id = r.variables.http_x_request_id;
     }
-    r.error(",Error," + request_id + "," + formatDate(new Date()) + "," + "Error:[" + errorName + "]" + "," + "Description:[" + errorDetail + "]");
+
+    var log_nginx_variables_str = create_log_nginx_variables_str(r);
+
+    r.error(",Error," + request_id + "," + source_client_id + "," + desitination_client_id + "," + formatDate(new Date()) +  ",-,-,-,-," + "\"Error:[" + errorName + "]" + "," + "Description:[" + errorDetail.replace(/"/g, "\"\"") + "]\""+ log_nginx_variables_str);
+}
+
+/**
+ * アクセストークンaud,idの妥当性検証
+ * @private
+ * @param {Object} config_json 設定ファイル
+ * @param {string} request_uri call_api_url
+ * @param {string} request_method call_api_method
+ * @param {Object} introspection_response introspection_response
+ * @return {obj|EdgeError}\{"check_flag":boolean,"message":string"}
+ */
+function checkGbizidAndCorpid(r, introspection_response) {
+    var i = 0;
+    var ErrorArray = [];
+    var arg_gbizid = r.args.gbizid;
+    var arg_corpid = r.args.corpid;
+    var gbizid_sub = introspection_response.gbizid_sub;
+    var gbizid_corporate_number = introspection_response.gbizid_corporate_number;
+
+   
+    if (!(typeof (arg_corpid) === "undefined") && !(arg_corpid === gbizid_corporate_number)) {
+        ErrorArray[i++] = "The value of the parameter [ corpid ] does not match the registered value . ";
+    }
+    if (!(typeof (arg_gbizid) === "undefined") && !(arg_gbizid === gbizid_sub)) {
+        ErrorArray[i++] = "The value of the parameter [ gbizid ] does not match the registered value . ";
+    }
+
+    if (ErrorArray.length > 0) {
+        return new EdgeError(403, ErrorArray.join());
+    }
 }
 
 /**
@@ -511,11 +690,10 @@ function checkIdAud(config_json, request_uri, request_method, introspection_resp
     // マップから利用許可したクライアントIDのリストを取得
     var authorized_client_list = config_json.authorized_client_list;
 
-    var token_client_id;
     // 2. アクセストークンのclient_idのチェック
     if (introspection_response["azp"]) {
         // azpから取得
-        token_client_id = introspection_response["azp"];
+        source_client_id = introspection_response["azp"];
     } else {
         return new EdgeError(403, "Could not get Client ID from access token.");
     }
@@ -525,7 +703,7 @@ function checkIdAud(config_json, request_uri, request_method, introspection_resp
     for (var i = 0; i < authorized_client_list.length; i++) {
         var tmp_authorized_client_obj = authorized_client_list[i];
         // 利用許可されているクライアントIDかどうか
-        if (tmp_authorized_client_obj["client_id"] === token_client_id) {
+        if (tmp_authorized_client_obj["client_id"] === source_client_id) {
             // 一致するならば、エンドポイントを比較するためいったん退避
             authorized_client_obj = tmp_authorized_client_obj;
             client_id_exist = true;
@@ -535,14 +713,15 @@ function checkIdAud(config_json, request_uri, request_method, introspection_resp
 
     // 返却用JSON作成
     if (client_id_exist !== true) {
-        return new EdgeError(403, "Unpermitted Client ID.(" + token_client_id + ")");
+        return new EdgeError(403, "Unpermitted Client ID.(" + source_client_id + ")");
     }
 
     // 3. 利用許可したAPIかチェック
     var endpoint_exist = false;
     // 退避したエンドポイントからメソッドとURIの一致をみる
     authorized_client_obj.endpoint.forEach(function (endpoint_obj) {
-        if (request_uri.match(endpoint_obj.uri) && endpoint_obj.method === request_method) {
+        var endpoint_obj_uri = addDefaultPort( endpoint_obj.uri);
+        if (request_uri.match(endpoint_obj_uri) && endpoint_obj.method === request_method) {
             endpoint_exist = true;
         }
     });
@@ -555,6 +734,325 @@ function checkIdAud(config_json, request_uri, request_method, introspection_resp
     // 正常な場合のみここへ到達する
     result_obj.check_flag = true;
     return result_obj;
+}
+
+/**
+ * 
+ * @param {reply} reply
+ * @param {orgObj} obj 
+ * @param {introspection_response} obj 
+ * @rturn
+ */
+function addMetadata(reply,orgObj,introspection_response) {
+    var editJson = JSON.parse("{}");
+    if(config_json.meta.add_flag) {
+        source_client_id = introspection_response["azp"];
+        desitination_client_id = config_json.client_id;
+        var system_name;
+        
+        system_name = config_json.system_name;
+        
+        var scope;
+        var scopes = [];
+        scope = introspection_response.scope;
+        if(!(typeof(scope) === "undefined")) {
+            var scopesArray = scope.split(" ");
+            for(var i=0; i<scopesArray.length; i++) {
+                scopes.push(scopesArray[i]);
+            }
+        }
+        var time;
+        time = reply.variables.request_time;
+        
+        editJson["meta"] = JSON.parse("{}");
+        editJson["meta"]["source_client_id"] = source_client_id;
+        editJson["meta"]["desitination_client_id"] = desitination_client_id;
+        editJson["meta"]["system_name"] = system_name;
+        editJson["meta"]["scopes"] = scopes;
+        editJson["meta"]["request_time"] = time;
+        editJson["meta"]["timestamp"] = formatDate(new Date());
+    }
+    editJson["data"] = JSON.parse(orgObj);
+    return JSON.stringify(editJson, undefined, "\t");
+}
+
+
+
+/**
+ * オブジェクトの最下層の値の取得
+ * @private
+ * @param {Object} obj 取得用オブジェクト
+ * @param {Array<string>} array "."で分割した配列
+ * @param {Object} r リクエストオブジェクト
+ * @return {Map<string,string>} retrunMap
+ */
+function getEndValues(obj, array, r) {
+    var deepNum = 0;
+    var tempObj = obj;
+    var indexMap = {};
+    var index = 0;
+    var returnMap = {};
+    var fullkey = "";
+
+    while (true) {
+        var key = array[deepNum];
+        key = key.replace(/\[\]$/, "");
+        fullkey += key;
+        // 末端を登録
+        if (deepNum === array.length - 1) {
+            if (!(typeof (tempObj[key]) === "undefined")) {
+                returnMap[fullkey] = tempObj[key];
+            }
+            delNum = fullkey.lastIndexOf("[");
+            if (delNum === -1) {
+                return returnMap;
+            } else {
+                fullkey = fullkey.substring(0, delNum);
+                index = indexMap[fullkey];
+                index++;
+                indexMap[fullkey] = index;
+            }
+            // tempObj他、リセット
+            deepNum = 0;
+            tempObj = obj;
+            fullkey = "";
+            continue;
+        }
+
+        var isArrayValue = Array.isArray(tempObj[key]);
+
+        // 末端でなければ、一つ階層を落とす
+        if (isArrayValue) {
+            if (!(indexMap.hasOwnProperty(fullkey))) {
+                // 最初
+                indexMap[fullkey] = 0;
+            }
+            index = indexMap[fullkey];
+
+            if (index >= tempObj[key].length) {
+                var delNum = fullkey.lastIndexOf("[");
+                if (delNum === -1) {
+                    return returnMap;
+                } else {
+                    fullkey = fullkey.substring(0, delNum);
+                    index = indexMap[fullkey];
+                    index++;
+                    indexMap[fullkey] = index;
+                }
+                // tempObj他、リセット
+                deepNum = 0;
+                tempObj = obj;
+                fullkey = "";
+                continue;
+            }
+
+            fullkey += "[" + index + "]";
+
+            tempObj = tempObj[key][index];
+        } else {
+            tempObj = tempObj[key];
+        }
+
+        if (typeof (tempObj) === "undefined") {
+            delNum = fullkey.lastIndexOf("[");
+            if (delNum === -1) {
+                return returnMap;
+            } else {
+                fullkey = fullkey.substring(0, delNum);
+                index = indexMap[fullkey];
+                index++;
+                indexMap[fullkey] = index;
+            }
+
+            // tempObj他、リセット
+            deepNum = 0;
+            tempObj = obj;
+            fullkey = "";
+            continue;
+        }
+
+        fullkey += ".";
+        deepNum++;
+    }
+}
+
+/**
+ * オブジェクトの最下層の値への登録
+ * @private
+ * @param {Object} obj 登録用オブジェクト
+ * @param {Map<string,string>} map 登録用キーMap
+ * @param {Object} r リクエストオブジェクト
+ */
+function setEndValues(obj, map, r) {
+    Object.entries(map).forEach(function (entry) {
+        // entry = [key , value]
+        var keyArray = entry[0].split(".");
+        setEndValue(entry[1], obj, keyArray, r);
+    });
+}
+
+/**
+ * オブジェクトの最下層の値への登録
+ * @private
+ * @param {string} value セットする値
+ * @param {Object} obj 登録用オブジェクト
+ * @param {Array<string>} array "."で分割した配列
+ * @param {Object} r リクエストオブジェクト
+ */
+function setEndValue(value, obj, array, r) {
+    if (typeof (value) === "undefined") {
+        return;
+    }
+    var deepNum = 0;
+    var nextKey;
+    var nextKeySize;
+    var nextKeyArray;
+    var nextKeyArrayStr;
+    var isArrayNextKey;
+    var match = /([^[]*)\[([0-9]+)\]$/;
+
+    while (deepNum < array.length - 1) {
+        nextKey = array[deepNum];
+        isArrayNextKey = nextKey.match(match);
+        if (isArrayNextKey) {
+            nextKeyArrayStr = nextKey.replace(match, function (str, p1, p2) {
+                var obj = { "nextKey": p1, "nextKeySize": parseInt(p2) };
+                return JSON.stringify(obj);
+            });
+            nextKeyArray = JSON.parse(nextKeyArrayStr);
+            nextKey = nextKeyArray["nextKey"];
+            nextKeySize = nextKeyArray["nextKeySize"];
+        }
+
+
+        if (typeof (obj[nextKey]) === "undefined") {
+            // 現在のeditJSONに存在しないなら新規作成
+            if (isArrayNextKey) {
+                obj[nextKey] = [];
+            } else {
+                obj[nextKey] = {};
+            }
+        }
+
+        // 配列分作成
+        if (isArrayNextKey) {
+            for (var i = 0; i < nextKeySize + 1; i++) {
+                if (typeof (obj[nextKey][i]) === "undefined") {
+                    obj[nextKey][i] = {};
+                }
+            }
+        }
+
+        // 階層を一つ進める
+        if (isArrayNextKey) {
+            obj = obj[nextKey][nextKeySize];
+        } else {
+            obj = obj[nextKey];
+        }
+        deepNum++;
+    }
+    // 現在の階層へ値を登録.
+    nextKey = array[deepNum];
+    isArrayNextKey = nextKey.match(match);
+    if (isArrayNextKey) {
+        nextKeyArrayStr = nextKey.replace(match, function (str, p1, p2) {
+            var obj = { "nextKey": p1, "nextKeySize": parseInt(p2) };
+            return JSON.stringify(obj);
+        });
+        nextKeyArray = JSON.parse(nextKeyArrayStr);
+        nextKey = nextKeyArray["nextKey"];
+        nextKeySize = nextKeyArray["nextKeySize"];
+    }
+
+    if (isArrayNextKey) {
+        obj[nextKey][nextKeySize] = value;
+    } else {
+        obj[nextKey] = value;
+    }
+
+    return;
+}
+
+
+/**
+ * URI変換
+ * @private
+ * @param {Map<string,string>} map URI変換前キーMap
+ * @param {string} extrUri 抽出URI
+ * @param {string} replUri 置換URI
+ * @param {Object} r リクエストオブジェクト
+ */
+function convertUri(map, extrUri, replUri, r) {
+    var mapUri = Object.keys(map)[0];
+
+    if (typeof (mapUri) === "undefined") {
+        print_warnlog(r, RP_FLAG.PROVISION, "レスポンスデータに[" + extrUri + "]に該当するキーは存在しないため変換しません。");
+        return;
+    }
+
+    extrUri = extrUri.replace(/\[\]$/, "");
+    replUri = replUri.replace(/\[\]$/, "");
+    var arrayExtrUri = extrUri.split(/\[\]./);
+    var arrayReplUri = replUri.split(/\[\]./);
+    var arraymapUri = mapUri.split(/\[[0-9]*\]./);
+
+    if (arrayExtrUri.length === arrayReplUri.length && arrayReplUri.length === arraymapUri.length) {
+        // 同じ場合置換
+        Object.entries(map).forEach(function (p) {
+            // entry = [key , value]
+            var p_value = p[1];
+            var p_key = p[0];
+            delete map[p_key];
+
+            var new_key = p[0];
+            Object.keys(arrayExtrUri).forEach(function (index) {
+                new_key = new_key.replace(arrayExtrUri[index], arrayReplUri[index]);
+            });
+
+            map[new_key] = p_value;
+        });
+    } else {
+        // 抽出の方が大きい場合
+        // 置換の方が大きい場合
+         print_warnlog(r, RP_FLAG.PROVISION, "JSON変換ルールに配列の個数誤りがあるため変換できません。[" + replUri + "],[" + extrUri + "]");
+        Object.entries(map).forEach(function (p) {
+            delete map[p[0]];
+        });
+    }
+}
+
+
+/**
+ * マッピング
+ * @private
+ * @param {Object} obj
+ * @param {Array<Object>} json_convert_mappings
+ * @param {number} get_set_flag
+ * @param {number} r
+ * @return {Object} edit_obj
+ */
+function mapping(obj, json_convert_mappings, get_set_flag, r) {
+    var edit_obj = {};
+
+    var methodNum = 0;
+    if (get_set_flag === GET_SET_FLAG.GET) {
+        methodNum++;
+    }
+    var j = 0;
+
+    for (var i = 0; i < json_convert_mappings.length; i++) {
+        var mapping = json_convert_mappings[i];
+        var uriArray = [mapping.datastore, mapping.response];
+        var array_datastore = mapping.datastore.split(".");
+        var array_response = mapping.response.split(".");
+        var arrayArray = [array_datastore, array_response];
+        // XOR GET 1^1->0 1^0->1 ^GET 0^1->1 0^0->0
+        var map = getEndValues(obj, arrayArray[methodNum ^ 1], r);
+        convertUri(map, uriArray[methodNum ^ 1], uriArray[methodNum ^ 0], r);
+        setEndValues(edit_obj, map, r);
+    }
+
+    return edit_obj;
 }
 
 /**
@@ -581,58 +1079,83 @@ function getEndValue(obj, array) {
 }
 
 /**
- * オブジェクトの最下層の値への登録
+ * JSONから配列へのマッピング
  * @private
- * @param {string} value セットする値
- * @param {Object} obj 登録用オブジェクト
- * @param {Array<string>} array "."で分割した配列
+ * @param {Object} obj
+ * @param {Array<Object>} arrayConvertMappings
+ * @param {number} get_set_flag
+ * @return {Object} editObj
  */
-function setEndValue(value, obj, array) {
-    if (typeof (value) === "undefined") {
-        return;
+function arrayMapping(obj, arrayConvertMappings, get_set_flag) {
+    if(get_set_flag === GET_SET_FLAG.GET) {
+        var editObj;
+    } else {
+        return obj;
     }
-    var deepNum = 0;
-    while (deepNum < array.length - 1) {
-        if (typeof (obj[array[deepNum]]) === "undefined") {
-            // 現在のeditJSONに存在しないなら新規作成
-            obj[array[deepNum]] = {};
+    
+    for (var i = 0; i < arrayConvertMappings.length; i++) {
+        var mapping = arrayConvertMappings[i];
+        var listDatastore = mapping.datastore.split(".");
+        var endValue = getEndValue(obj, listDatastore);
+        editObj = endValue;
+        if (editObj != null) {
+            return editObj;
+        } else {
+            return;
         }
-        // 階層を一つ進める
-        obj = obj[array[deepNum]];
-        deepNum++;
     }
-    // 現在の階層へ値を登録
-    obj[array[deepNum]] = value;
-    return;
+    return editObj;
 }
 
 /**
- * マッピング
+ * XML変換
  * @private
- * @param {Object} obj
- * @param {Array<Object>} json_convert_mappings
- * @param {number} get_set_flag
- * @return {Object} edit_obj
+ * @param {Object} r
+ * @param {string} orgJsonStr
+ * @param {number} getSetFlag
+ * @return {Object}
  */
-function mapping(obj, json_convert_mappings, get_set_flag) {
-    var edit_obj = {};
+function convertXml(r, orgJsonStr, getSetFlag) {
+    var callApiUri = r.variables.request_uri;
+    var callApiMethod = r.method;
+    var xmlConverts = config_json.xml_converts;
 
-    var methodNum = 0;
-    if (get_set_flag === GET_SET_FLAG.GET) {
-        methodNum++;
+    //configファイルにxml変換の記述がない場合、xml変換は行わない
+    if (!xmlConverts) {
+        return orgJsonStr;
     }
 
-    for (var i = 0; i < json_convert_mappings.length; i++) {
-        var mapping = json_convert_mappings[i];
-        var array_datastore = mapping.datastore.split(".");
-        var array_response = mapping.response.split(".");
-        var arrayArray = [array_datastore, array_response];
-        // XOR GET 1^1->0 1^0->1 ^GET 0^1->1 0^0->0
-        var endValue = getEndValue(obj, arrayArray[methodNum ^ 1]);
-        setEndValue(endValue, edit_obj, arrayArray[methodNum ^ 0]);
+    for (var i = 0; i < xmlConverts.length; i++) {
+        var xmlConvert = xmlConverts[i];
+        if (callApiUri.match(xmlConvert.xml_convert_uri)
+            && callApiMethod.match(xmlConvert.xml_convert_method)) {
+                //xml変換フラグの取得
+                var xmlFlag;
+                if (getSetFlag === GET_SET_FLAG.GET) {
+                    if (callApiMethod.match("GET")) {
+                        xmlFlag = xmlConvert.xml_convert_get_flag;
+                    }
+                }
+                //xmlFlag=falseもしくはundefinedのときXML変換は行わない
+                if (!xmlFlag) {
+                    return orgJsonStr;
+                }
+                if(getSetFlag === GET_SET_FLAG.GET) {
+                    //JSONの"xml":キーにxmlを丸める
+                    if(!callApiMethod.match("GET")) {
+                        return orgJsonStr; 
+                    } else {
+                        return "{\"xml\"\: \"" + orgJsonStr.replace(/\n/g,"") + "\"}"; 
+                    } 
+                } else  {
+                    return orgJsonStr;
+                }
+        }
     }
-    return edit_obj;
+    return orgJsonStr;
 }
+
+
 
 /**
  * JSON変換
@@ -652,66 +1175,156 @@ function convert_json(r, org_json_str, get_set_flag) {
         var json_convert = json_converts[i];
         if (call_api_uri.match(json_convert.json_convert_uri)
             && call_api_method.match(json_convert.json_convert_method)) {
-            // json_flagの取得
-            var json_flag;
+            
+            // arrayFlagの取得
+            var arrayFlag;
             if (get_set_flag === GET_SET_FLAG.GET) {
-                json_flag = json_convert.json_convert_get_flag;
+                arrayFlag = json_convert.array_convert_get_flag;
+            }
+
+            if (arrayFlag === true)  {
+                var arrayConvertRule = json_convert.array_convert_rule;
+                var arrayConvertRules = config_json.array_convert_rules;
+                var arrayConvertMappings = arrayConvertRules[arrayConvertRule];
+
+                if (typeof (arrayConvertMappings) === "undefined") {
+                    // ルールがないときは変換しない
+                     print_warnlog(r, RP_FLAG.PROVISION, "array_convert_mappings variable is undefined.");
+                    break;
+                 }
+        
             } else {
-                json_flag = json_convert.json_convert_set_flag;
+                // json_flagの取得
+                var json_flag;
+                if (get_set_flag === GET_SET_FLAG.GET) {
+                    json_flag = json_convert.json_convert_get_flag;
+                } else {
+                    json_flag = json_convert.json_convert_set_flag;
+                }
+                 // json_flag=falseもしくはundefinedのときJSON変換は行わない
+                if (!json_flag) {
+                    return org_json_str;
+                }
+                var json_convert_rule = json_convert.json_convert_rule;
+                var json_convert_rules = config_json.json_convert_rules;
+                var json_convert_mappings = json_convert_rules[json_convert_rule];
+
+                if (typeof (json_convert_mappings) === "undefined") {
+                    // ルールがないときは変換しない
+                     print_warnlog(r, RP_FLAG.PROVISION, "json_convert_mappings variable is undefined.");
+                    break;
+                }
             }
-            // json_flag=falseもしくはundefinedのときJSON変換は行わない
-            if (!json_flag) {
-                return org_json_str;
-            }
-            var json_convert_rule = json_convert.json_convert_rule;
-            var json_convert_rules = config_json.json_convert_rules;
-            var json_convert_mappings = json_convert_rules[json_convert_rule];
-            if (typeof (json_convert_mappings) === "undefined") {
-                // ルールがないときは変換しない
-                r.warn("json_convert_mappings variable is undefined.");
-                break;
-            }
+
             // 編集するためにオブジェクトに変換
             var tmpJson = JSON.parse(org_json_str);
             var edit_json;
+
             if (Array.isArray(tmpJson)) {
                 edit_json = [];
                 for (var num = 0; num < tmpJson.length; num++) {
-                    var edit_obj = mapping(tmpJson[num], json_convert_mappings, get_set_flag);
-                    edit_json.push(edit_obj);
+                    if (!arrayFlag) {
+                        var edit_obj = mapping(tmpJson[num], json_convert_mappings, get_set_flag, r);
+                        edit_json.push(edit_obj);
+                    } else {
+                        var edit_obj = arrayMapping(tmpJson[num], arrayConvertMappings, get_set_flag);
+                        if(edit_obj) {
+                            edit_json.push(edit_obj);
+                        }
+                    }
                 }
             } else {
-                edit_json = mapping(tmpJson, json_convert_mappings, get_set_flag);
+                if(!arrayFlag) {
+                    edit_json = mapping(tmpJson, json_convert_mappings, get_set_flag, r);
+                } else {
+                    edit_json = arrayMapping(tmpJson, arrayConvertMappings, get_set_flag);
+                }
+                
             }
             // 編集したデータをJSON形式に変換
-            var edit_json_str = JSON.stringify(edit_json);
+            var edit_json_str = JSON.stringify(edit_json, undefined, "\t");
             return edit_json_str;
         }
     }
     // URIが一致しない場合、JSON変換はしない
-    r.warn("This API can not perform JSON conversion.");
+     print_warnlog(r, RP_FLAG.PROVISION, "This API can not perform JSON conversion.");
     return org_json_str;
 }
 
 /**
- * audに登録するクライアントIDを取得
+ * スコープマッピング
  * @private
- * @param {string} call_api
- * @return {string|EdgeError}
+ * @param {string} tmpJson
+ * @param {Array<string>} requestScopes
+ * @return {Object}
  */
-function get_aud_scope(call_api) {
-    var aud_scope;
-    var authorized_server_list = config_json["authorized_server_list"];
-    authorized_server_list.forEach(function (authorized_server) {
-        var domain = authorized_server.domain;
-        if (!isEmpty(domain) && call_api.match(domain)) {
-            aud_scope = authorized_server.client_id;
+function scopeMapping(tmpJson, requestScopes) {
+    var edit_json = {};
+    // 対象APPのスコープ一覧ごとに、requestScopes、responseBody に含まれる場合のみ追加
+    for (var i = 0; i < SCOPE_MAPPINGS.length; i++) {
+        var scopeMapping = SCOPE_MAPPINGS[i];
+        //scopeMapping.scope がrequestScopesに含まれ
+        //scopeMapping.data_nameがObject.keys(tmpJson) に含まれる場合
+        if (requestScopes.includes(scopeMapping.scope)
+            && Object.keys(tmpJson).includes(scopeMapping.data_name)) {
+            //返却用jsonのみ取り出し
+            edit_json[scopeMapping.data_name] = tmpJson[scopeMapping.data_name];
         }
-    });
-    if (isEmpty(aud_scope)) {
-        return new EdgeError(400, "Unable to get client_id of Destination Server.");
     }
-    return aud_scope;
+    return edit_json;
+}
+
+/**
+ * スコープ絞り込み
+ * @private
+ * @param {string} responseBody
+ * @param {string} scope
+ * @return {Object}
+ */
+function scopeFiltering(responseBody, scope) {
+    //1.スコープが指定されているかチェック
+
+    //設定ファイルから対象APPのスコープ一覧を取り出す
+    var scopes = [];
+    for (var i = 0; i < SCOPE_MAPPINGS.length; i++) {
+        scopes.push(SCOPE_MAPPINGS[i].scope);
+    }
+
+    //scope を取り出す " "でsplit
+    var requestScopes = scope.split(" ");
+
+    //スコープが指定されているかいないか
+    var is_scope_specified = false;
+    for (var i = 0; i < requestScopes.length; i++) {
+        if (scopes.includes(requestScopes[i])) {
+            is_scope_specified = true;
+            break;
+        }
+    }
+
+    //スコープが指定されていない場合、全データを返却する
+    if (!is_scope_specified) {
+        return responseBody;
+    }
+
+    //2.スコープを絞り込む
+    // 編集するためにオブジェクトに変換
+    var tmpJson = JSON.parse(responseBody);
+
+    var edit_json;
+    // 配列の場合
+    if (Array.isArray(tmpJson)) {
+        edit_json = [];
+        for (var num = 0; num < tmpJson.length; num++) {
+            var edit_obj = scopeMapping(tmpJson[num], requestScopes);
+            edit_json.push(edit_obj);
+        }
+    } else {
+        edit_json = scopeMapping(tmpJson, requestScopes);
+    }
+
+    var edit_json_str = JSON.stringify(edit_json, undefined, "\t");
+    return edit_json_str;
 }
 
 /**
@@ -727,6 +1340,42 @@ function isEmpty(value) {
 }
 
 /**
+ * 式 expr1 が NULL もしくは undefined なら expr2 の値を戻す。
+ * nullValueLogic *
+ * @private
+ * @param {string} expr1
+ * @param {string} expr2
+ * @return {boolean}
+ */
+function nvl(expr1, expr2) {
+    return (typeof (expr1) === "undefined" || expr1 === null) ? expr2 : expr1;
+}
+
+/**
+ * URLにデフォルトポートを付ける
+ * @private
+ * @param {string} uri
+ * @return {boolean}
+ */
+function addDefaultPort(uri) {
+    if (typeof (uri) === "undefined") {
+        return uri;
+    } else if (uri.match(new RegExp("^.?http://", ""))) {
+        var domain = uri.match(/^.?(http:\/\/[^\/]+).*/)[1];
+        if (!domain.match(new RegExp(":[0-9]+$", ""))) {
+            var domainWithDefaultPort = domain + ":80"
+            uri = uri.replace(domain, domainWithDefaultPort)
+        }
+    } else if (uri.match(new RegExp("^.?https://", ""))) {
+        var domain = uri.match(/^.?(https:\/\/[^\/]+).*/)[1];
+        if (!domain.match(new RegExp(":[0-9]+$", ""))) {
+            var domainWithDefaultPort = domain + ":443"
+            uri = uri.replace(domain, domainWithDefaultPort)
+        }
+    } 
+    return uri;
+}
+/**
  * アクセストークンの取得 (事前同意)
  * BASE64エンコードおよびアクセストークンの取得
  * @param {Object} r
@@ -738,24 +1387,29 @@ function get_access_token(r) {
         r.return(config_json.getStatus(), config_json.getJsonResponse());
         return;
     }
-    print_accesslog(r, RP_FLAG.REFERENCE, getRemoteFullUrl(r), getHostFullUrl(r), r.method, "Succeeded in calling the Internal API.");
+    source_client_id = config_json.client_id;
 
     var basicAuthPlaintext = config_json["client_id"] + ":" + config_json["client_secret"];
     // base64変換
     var authHeader = "Basic " + basicAuthPlaintext.toBytes().toString('base64');
+
     // リクエストボディをデコード
     var requestBody_json = decode_requestBody(r);
-    if (requestBody_json instanceof EdgeError) {
+    if (requestBody_json instanceof EdgeError || (requestBody_json = check_requestBody(requestBody_json)) instanceof EdgeError) {
         print_errorlog(r, RP_FLAG.REFERENCE, "HTTP Request Error", requestBody_json.getLogMessage());
         r.return(requestBody_json.getStatus(), requestBody_json.getJsonResponse());
         return;
     }
+
+    desitination_client_id = requestBody_json.client_id;
+    print_accesslog(r, RP_FLAG.REFERENCE, getRemoteFullUrl(r), getHostFullUrl(r), r.method, "Succeeded in calling the Internal API.");
+
     // scope組み立て
-    var scope = get_aud_scope(requestBody_json.call_api);
-    if (scope instanceof EdgeError) {
-        print_errorlog(r, RP_FLAG.REFERENCE, "Config File Error", scope.getLogMessage());
-        r.return(scope.getStatus(), scope.getJsonResponse());
-        return;
+    // aud に client_id を含める
+    var scope = desitination_client_id;
+    // scope
+    if (typeof (requestBody_json.scope) !== "undefined") {
+        scope += " " +  requestBody_json.scope;
     }
 
     print_accesslog(r, RP_FLAG.REFERENCE, getHostFullUrl(r), getOAuth2TokenEndpoint(), r.method, "Called Authorization Server.");
@@ -798,7 +1452,103 @@ function get_access_token(r) {
 }
 
 /**
- * ログを出した後、luaへ接続(個別同意)
+ * ログを出した後、luaへ接続(都度同意)
+ * @param {Object} r
+ */
+function checkAuthorizationServer(r) {
+    // 設定ファイルの不正はリターン
+    if (config_json instanceof EdgeError) {
+        print_errorlog(r, RP_FLAG.REFERENCE, "Config File Error", config_json.getLogMessage());
+        r.return(config_json.getStatus(), config_json.getJsonResponse());
+        return;
+    }
+    var basicAuthPlaintext = config_json["client_id"] + ":" + config_json["client_secret"];
+    // base64変換
+    var authHeader = "Basic " + basicAuthPlaintext.toBytes().toString('base64');
+
+    var uri = "/_oauth2_client_credentials_request";
+    r.subrequest(uri,
+        { method: r.method, body: "grant_type=client_credentials", args: "authorization=" + authHeader },
+        function (reply) {
+            if (200 == reply.status) {
+                 var returnStr = "{\"message\":\"認可サーバへアクセスできています。\"}";
+                r.return(reply.status, jsonStringifyFromJsonString(returnStr));
+                return;
+            } else {
+                r.return(reply.status, createErrorResponseForCheckAuthorizationServer(reply.status, reply.responseBody));
+                return;
+            }
+        }
+    );
+}
+
+
+/**
+ * 認可サーバのレスポンスのうちerror_descriptionがあるかどうか
+ */
+function checkErrorResponseFromAuthorizationServer(status, responseBody) {
+    //ステータスが400番台かつ
+    // 以下の形式で返却される場合はauthenticationからの応答
+    //    {
+    //     "error" : "...."
+    //     "error_description" : "...."
+    // }
+    return (400 <= status && status < 500) && responseBody.hasOwnProperty("error_description");
+}
+
+/**
+ * Nodeで作ったエラーレスポンスかどうか
+ */
+function checkErrorResponseFromHTTPStatusCodeOnly(responseBody) {
+    // 以下の形式で返却される場合は,Nodeで作られたエラーレスポンス
+    //  {
+    //    "error" : {
+    //       "message":"...." //errorMessages
+    //    }
+    //  }
+    var errorMessages = Object.values(CLIENT_ERROR_CODE_MESSAGES).concat(Object.values(SERVER_ERROR_CODE_MESSAGES));
+
+    return responseBody.hasOwnProperty("error")
+        && (errorMessages.includes(responseBody["error"]["message"]));
+
+}
+
+/**
+ */
+function createErrorResponseForCheckAuthorizationServer(status, responseBody_str) {
+    var responseBody;
+    try {
+        responseBody = JSON.parse(responseBody_str);
+    } catch (error) {
+        return new EdgeError(status, responseBody_str).getJsonResponse();
+    }
+    if (checkErrorResponseFromAuthorizationServer(status, responseBody)) {
+        //error_descriptionが含まれる場合
+        var response = {}
+        response["message"] = "認可サーバへアクセスできています。Ｇビズコネクトポータルからダウンロードしたノード設定ファイルをノードに反映してください。";
+        response["authorization_server_error_response"] = responseBody;
+        return jsonStringifyFromObject(response)
+    } else if (checkErrorResponseFromHTTPStatusCodeOnly(responseBody)) {
+        //ノードで作ったレスポンスの場合
+        //ステータスコードのみのレスポンスの場合、URIを追加
+        //typeを変更する
+        var rtnJson = responseBody
+        rtnJson["error"]["status"] = rtnJson["error"]["message"]
+        rtnJson["error"]["message"] = "認可サーバへアクセスできません。";
+        rtnJson["error"]["uri"] = getOAuth2TokenEndpoint();
+        rtnJson["error"]["type"] = undefined;
+        return jsonStringifyFromObject(rtnJson);
+    } else {
+        //それ以外の場合
+        var response = {}
+        response["message"] = "認可サーバからのエラーレスポンスを確認してください。";
+        response["authorization_server_error_response"] = responseBody;
+        return jsonStringifyFromObject(response)
+    }
+}
+
+/**
+ * ログを出した後、luaへ接続(都度同意)
  * @param {Object} r
  */
 function redirect_authorized(r) {
@@ -809,23 +1559,36 @@ function redirect_authorized(r) {
 }
 
 /**
- * モジュールへ接続 (個別、事前共通)
+ * モジュールへ接続 (都度、事前共通)
  * @private
  * @param {Object} r
  * @param {string} access_token
  * @param {Object} requestBody_json
  */
 function call_edgemodule(r, access_token, requestBody_json) {
+    var client_id = requestBody_json.client_id;
     var call_api = requestBody_json.call_api;
     var call_api_method = requestBody_json.method;
     var call_api_accept = typeof (requestBody_json.accept) === "undefined" ? "" : requestBody_json.accept;
     var call_api_contentType = typeof (requestBody_json["content-type"]) === "undefined" ? "" : requestBody_json["content-type"];
     var call_api_body = requestBody_json.body;
 
-    print_accesslog(r, RP_FLAG.REFERENCE, getHostFullUrl(r), call_api, call_api_method, "Called the External API.");
+    // client_idからdomainを取ってきてcall_uriを作成
+    var domain;
+    var authorized_server_list = config_json["authorized_server_list"];
+    authorized_server_list.forEach(function (authorized_server) {
+        if (client_id === authorized_server.client_id) {
+            domain = authorized_server.domain;
+        }
+    });
+    var call_uri = domain + call_api;
 
+    print_accesslog(r, RP_FLAG.REFERENCE, getHostFullUrl(r), call_uri, call_api_method, "Called the External API.");
+    //  &call_uri=[call_uri]?key=value
+    //->&call_uri=[call_uri]&key=value
+    call_uri = call_uri.replace(/\?/, "&");
     var uri = "/_call_edgemodule";
-    var args = "access_token=" + access_token + "&call_uri=" + call_api + "&contentType=" + call_api_contentType + "&accept=" + call_api_accept;
+    var args = "access_token=" + access_token + "&call_uri=" + call_uri + "&contentType=" + call_api_contentType + "&accept=" + call_api_accept;
 
     r.subrequest(uri,
         { method: call_api_method, args: args, body: call_api_body },
@@ -849,7 +1612,7 @@ function call_edgemodule(r, access_token, requestBody_json) {
 }
 
 /**
- * 個別同意
+ * 都度同意
  * 取得
  * @param {Object} r
  */
@@ -861,7 +1624,8 @@ function tsudodoi(r) {
     print_accesslog(r, RP_FLAG.REFERENCE, getOAuth2TokenEndpoint(), getHostFullUrl(r), r.method, "Succeeded in calling Authorization Server.");
     // リクエストボディをデコード
     var requestBody_json = decode_requestBody(r);
-    if (requestBody_json instanceof EdgeError) {
+    // リクエストボディをチェック
+    if (requestBody_json instanceof EdgeError || (requestBody_json = check_requestBody(requestBody_json)) instanceof EdgeError) {
         print_errorlog(r, RP_FLAG.REFERENCE, "HTTP Request Error", requestBody_json.getLogMessage());
         r.return(requestBody_json.getStatus(), requestBody_json.getJsonResponse());
         return;
@@ -877,11 +1641,27 @@ function tsudodoi(r) {
 function introspectAccessToken(r) {
     // 設定ファイルの不正はリターン
     if (config_json instanceof EdgeError) {
-        print_errorlog(r, RP_FLAG.REFERENCE, "Config File Error", config_json.getLogMessage());
+        print_errorlog(r, RP_FLAG.PROVISION, "Config File Error", config_json.getLogMessage());
         r.return(config_json.getStatus(), config_json.getJsonResponse());
         return;
     }
-    print_accesslog(r, RP_FLAG.PROVISION, getRemoteFullUrl(r), getCallAPI(r), call_api_method, "Succeeded in calling the External API.");
+    desitination_client_id = config_json.client_id;
+
+    try {
+        if (!isEmpty(r.variables.access_token)) {
+            var payloadStr = r.variables.access_token.split(".")[1];
+            //base64デコード
+            var payloadBase64decode =String.bytesFrom(payloadStr, 'base64');
+            var payload = JSON.parse(payloadBase64decode);
+            source_client_id = payload.azp;
+        }else{    
+            throw new Error("Access token is missing or invalid.");
+        }
+    } catch(e) {
+        print_errorlog(r, RP_FLAG.PROVISION, "Authorization Error", e.stack);
+        r.return(401);// 401 Authorization Required
+        return;
+    }
 
     // イントロスペクションリクエストのAuthorizationヘッダーを準備する
     var basicAuthPlaintext = config_json["client_id"] + ":" + config_json["client_secret"];
@@ -890,13 +1670,15 @@ function introspectAccessToken(r) {
 
     var call_api_method = r.variables.call_api_method;
 
+    print_accesslog(r, RP_FLAG.PROVISION, getRemoteFullUrl(r), getCallAPI(r), call_api_method, "Succeeded in calling the External API.");
+
     print_accesslog(r, RP_FLAG.PROVISION, getHostFullUrl(r), getOAuth2TokenIntrospectEndpoint(), call_api_method, "Called Authorization Server.");
     // Make the OAuth 2.0 Token Introspection request
     r.subrequest("/_oauth2_send_introspection_request", "token=" + r.variables.access_token + "&authorization=" + authHeader,
         function (reply) {
             if (reply.status !== 200) {
                 print_accesslog(r, RP_FLAG.PROVISION, getOAuth2TokenIntrospectEndpoint(), getCallAPI(r), call_api_method, "Failed to call Authorization Server.");
-                print_errorlog(r, RP_FLAG.REFERENCE, "Authorization Error", reply.responseBody);
+                print_errorlog(r, RP_FLAG.PROVISION, "Authorization Error", reply.responseBody);
                 r.return(401);// 401 Authorization Required
                 return;
             }
@@ -915,13 +1697,13 @@ function introspectAccessToken(r) {
                     return;
                 } else {
                     print_accesslog(r, RP_FLAG.PROVISION, getOAuth2TokenIntrospectEndpoint(), getCallAPI(r), call_api_method, "OAuth token introspection found inactive token.");
-                    print_errorlog(r, RP_FLAG.REFERENCE, "Authorization Error", reply.responseBody);
+                    print_errorlog(r, RP_FLAG.PROVISION, "Authorization Error", reply.responseBody);
                     r.return(403);
                     return;
                 }
             } catch (e) {
                 print_accesslog(r, RP_FLAG.PROVISION, getOAuth2TokenIntrospectEndpoint(), getCallAPI(r), call_api_method, "OAuth token introspection response is not JSON: " + reply.body);
-                print_errorlog(r, RP_FLAG.REFERENCE, "Authorization Error", reply.responseBody);
+                print_errorlog(r, RP_FLAG.PROVISION, "Authorization Error", reply.responseBody);
                 r.return(401);// 401 Authorization Required
                 return;
             }
@@ -930,10 +1712,12 @@ function introspectAccessToken(r) {
 }
 
 /**
- * データストアを呼び出す
+ * データ提供システムを呼び出す
  * @param {Object} r
  */
 function call_system_api_init(r) {
+    desitination_client_id = config_json.client_id;
+
     // 有効なイントロスペクション応答があるか確認します
     var introspection_response_str = r.variables.token_response;
     var introspection_response = JSON.parse(introspection_response_str);
@@ -941,6 +1725,9 @@ function call_system_api_init(r) {
     // デコード
     var call_api = getCallAPI(r);
     var call_api_method = r.method;
+
+    call_api = addDefaultPort(call_api);
+
     // アクセストークンaud,idの妥当性検証
     var check = checkIdAud(config_json, call_api, call_api_method, introspection_response);
     if (check instanceof EdgeError) {
@@ -957,12 +1744,18 @@ function call_system_api_init(r) {
 
     // パラメータ
     var param_obj = {};
-    // 既存のパラメータを追加
-    Object.keys(r.args).forEach(function (key) {
-        param_obj[key] = this[key];
-    }, r.args);
-    // 新規に追加するパラメータの設定
+
+    //都度同意の設定
     if (typeof (introspection_response.gbizid_sub) !== "undefined") {
+        // アクセストークンaud,idの妥当性検証
+        var gbizCheck = checkGbizidAndCorpid(r, introspection_response);
+        if (gbizCheck instanceof EdgeError) {
+            r.return(gbizCheck.getStatus(), gbizCheck.getJsonResponse());
+            print_errorlog(r, RP_FLAG.PROVISION, "Validation Error", gbizCheck.getLogMessage());
+            return;
+        }
+
+        // 新規に追加するパラメータの設定
         param_obj.sub = encodeURIComponent(introspection_response.gbizid_sub);
         param_obj.account_type = encodeURIComponent(introspection_response.gbizid_account_type);
         param_obj.scope = encodeURIComponent(introspection_response.scope);
@@ -972,7 +1765,9 @@ function call_system_api_init(r) {
 
     // requestBody
     var requestBody = r.requestBody;
+    //json_flagがあるならjson変換
     requestBody = convert_json(r, r.requestBody, GET_SET_FLAG.SET);
+    requestBody = convertXml(r, requestBody, GET_SET_FLAG.SET);
 
     print_accesslog(r, RP_FLAG.PROVISION, getHostFullUrl(r), get_call_system_api(r), call_system_api_method, "Called the Internal API.");
     var uri = "/_call_system_api";
@@ -986,28 +1781,28 @@ function call_system_api_init(r) {
                 if (reply.status === 200) {
                     // 例外情報からメッセージを取得
                     print_accesslog(r, RP_FLAG.PROVISION, r.method, "Completed the acquisition of data.");
-                    // 正常な場合JSON変換を行う
-                    responseBody = convert_json(r, reply.responseBody, GET_SET_FLAG.GET);
-                } else if (reply.status === 404) {
-                    // 例外情報からメッセージを取得
-                    print_accesslog(r, RP_FLAG.PROVISION, r.method, "The data is not registered.");
+                    // 正常な場合XML変換JSON変換を行う
+                    responseBody = convertXml(r, responseBody, GET_SET_FLAG.GET);
+                    responseBody = convert_json(r, responseBody, GET_SET_FLAG.GET);
+                    //絞り込み
+                    responseBody = scopeFiltering(responseBody, introspection_response.scope);
                 } else {
-                    print_errorlog(r, RP_FLAG.REFERENCE, "Call SYSTEM API Error", reply.responseBody);
+                    print_errorlog(r, RP_FLAG.PROVISION, "Call SYSTEM API Error", reply.responseBody);
                     // JSON形式で返却する;
                     r.return(reply.status, toJSON(reply.status, reply.responseBody));
                     return;
                 }
             } else {
                 if (reply.status === 200) {
-                    // データストアに正常に書き込み完了
+                    // データ提供システムに正常に書き込み完了
                     print_accesslog(r, RP_FLAG.PROVISION, r.method, "The data has been updated.");
-                    responseBody = convert_json(r, reply.responseBody, GET_SET_FLAG.GET);
+                    responseBody = convert_json(r, responseBody, GET_SET_FLAG.GET);
                 } else if (reply.status === 201) {
-                    // データストアに正常に書き込み完了
+                    // データ提供システムに正常に書き込み完了
                     print_accesslog(r, RP_FLAG.PROVISION, r.method, "The data has been created.");
-                    responseBody = convert_json(r, reply.responseBody, GET_SET_FLAG.GET);
+                    responseBody = convert_json(r, responseBody, GET_SET_FLAG.GET);
                 } else {
-                    print_errorlog(r, RP_FLAG.REFERENCE, "Call SYSTEM API Error", reply.responseBody);
+                    print_errorlog(r, RP_FLAG.PROVISION, "Call SYSTEM API Error", reply.responseBody);
                     // JSON形式で返却する;
                     r.return(reply.status, toJSON(reply.status, reply.responseBody));
                     return;
@@ -1016,6 +1811,7 @@ function call_system_api_init(r) {
             print_accesslog(r, RP_FLAG.PROVISION, get_call_system_api(r), getHostFullUrl(r), r.method, "Succeeded in calling the Internal API.(request_time:" + reply.variables.request_time + "s)");
             print_accesslog(r, RP_FLAG.PROVISION, getHostFullUrl(r), getRemoteFullUrl(r), r.method, "Called the External API.");
             // そのまま返却する
+            responseBody = addMetadata(reply, responseBody, introspection_response);
             r.return(reply.status, responseBody);
         }
     );

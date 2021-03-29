@@ -10,32 +10,58 @@
         font-family: Tahoma, Verdana, Arial, sans-serif;
         background-color: #f2f2f2;
     }
+    .explanation {
+        display: inline-block;
+        bottom: 4em;
+        height: 1.2em;
+        width: 1.2em;
+        border-radius: 50%;
+        background: darkgrey;
+
+        font-size: 0.4em;
+        color: white;
+        text-align: center;
+    }
 </style>
 </head>
 <body>
 <h1>gBizConnect Node</h1>
 <hr>
 <h1>スコープ選択画面</h1>
-<h2>申請に必要な法人データを法人データストアから自動取得できます。<br>自動取得する場合は法人データストアと法人データの種類を選択し自動取得するボタンを押してください。<br>自動取得しない場合は自動取得しないボタンを押してください。</h2>
-<form action="https://edge.denshi.jp/v1/auth" method="GET" name="autogetform">
+<h2>申請に必要な法人データをデータ提供システムから自動取得できます。<br>自動取得する場合はデータ提供システムと法人データの種類を選択し自動取得するボタンを押してください。<br>自動取得しない場合は自動取得しないボタンを押してください。</h2>
+<form action="{{scope_authenticate_url}}" method="GET" name="autogetform">
 <h1>
 <table>
 <tr>
-<td>法人データストア：</td>
+<td>データ提供システム：</td>
 <td>
-<select name="client_id">
-<option value="app-datastore">法人データストア(app-datastore)</option>
-<option value="B">法人データストアB</option>
-<option value="C">法人データストアC</option>
+<select name="client_id" onChange="scopeSelect()">
+<option value="">選択してください</option>
+{% for _, authorized_server in ipairs(authorized_servers) do %}
+  <option value="{{authorized_server.client_id}}">{{authorized_server.name}}</option>
+{% end %}
 </select>
 </td>
 </tr>
 <tr>
 <td>法人データ種類：</td>
 <td>
-<input type="checkbox" name="scope" value="kihon">基本<br>
-<input type="checkbox" name="scope" value="shinsei">申請<br>
-<input type="checkbox" name="scope" value="zaimujoho">財務情報<br>
+<div id="scopes">
+{% for i, authorized_server in ipairs(authorized_servers) do %}
+  {% for j, scope in ipairs(authorized_server.scopes) do %}
+    <label name="{{authorized_server.client_id}}" style="display: none;"><input type="checkbox" name="scope" value="{{scope.value}}">
+      {{scope.name}}
+      <a href=
+        {% if scope.value == "certificate" then %}
+          "scope-info/scope-shomeisho.html#{{scope.value}}"
+        {% else %}
+          "scope-info/scope-shinsei.html#{{scope.value}}"
+        {% end %}
+      target="_blank" rel="noopener noreferrer"><span class="explanation">?</span></a><br>
+    </label>
+  {% end %}
+{% end %}
+</div>
 </td>
 </tr>
 </table>
@@ -43,8 +69,7 @@
 <input type="button" value="自動取得する" style="background-color: #5b9bd5; color: white; font-size: xx-large;" onclick="autoget();">
 </form>
 <hr>
-<form action="http://localhost:8084/shinsei-naiyo" method="GET">
-<input type="hidden" name="init" value="true">
+<form action="{{scope_no_authenticate_url}}" method="GET">
 <input type="submit" value="自動取得しない" style="background-color: #5b9bd5; color: white; font-size: xx-large;">
 </form>
 </body>
@@ -72,5 +97,27 @@ function autoget() {
   }
   document.autogetform.state.value = getQueryParam("state");
   document.autogetform.submit();
+}
+
+function scopeSelect() {
+  var scopes = document.getElementById('scopes');
+  var authorized_server = document.autogetform.client_id;
+  var client_id = authorized_server.options[authorized_server.selectedIndex].value;
+  var scopes_children = document.getElementById('scopes').children;
+  //下の要素のうち　name が　client_id　のやつのみ　非表示にする
+  for (var i = 0; i < scopes_children.length; i++) {
+    if (scopes_children[i].getAttribute("name") === authorized_server.value) {
+      //label
+      scopes_children[i].style.display = "block";
+      //input
+      scopes_children[i].firstChild.disabled = false;
+    } else {
+      //label
+      scopes_children[i].style.display = "none";
+      //input
+      scopes_children[i].firstChild.checked = false;
+      scopes_children[i].firstChild.disabled = true;
+    }
+  }
 }
 </script>
