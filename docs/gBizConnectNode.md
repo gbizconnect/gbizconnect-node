@@ -4,7 +4,7 @@
 本書はgBizConnect Nodeの仕様書です。
 gBizConnectのシステム全体図を以下に示します。
 <div align="center">
-<img src="img/gBizConnectSystem.png">
+<img src="img/gBizConnectSystem.PNG">
 
 図１ gBizConnect　システム全体像  
 ※グレーアウトされた機能は、データ要求者またはデータ提供者の立場では使わないものを指します
@@ -42,13 +42,13 @@ gBizConnect Node APIを使用してgBizConnectに参加しているシステム�
 <br>
 
 <div align="center">
-<img src="img/jizendoui.png">
+<img src="img/jizendoui.PNG">
 
 　図2.1-1 事前同意のフローのイメージ
 </div>
 <br>
 <div align="center">
-<img src="img/kobetsudoui.png">
+<img src="img/kobetsudoui.PNG">
 
 　図2.1-2 都度同意のフローのイメージ（事前同意のフローとの差異を黄色吹出に記載）
 </div>
@@ -140,7 +140,7 @@ JSON変換の設定方法は、
 「gBizConnect Node設定画面の操作ログ」です。ログの通信イメージを以下に示します。
 
 <div align="center">
-<img src="img/log.png">  
+<img src="img/log.PNG">  
 
 図2.12-1 ログ通信イメージ
 </div>
@@ -255,7 +255,7 @@ gBizConnect Nodeは、利用許可したシステムごとに過剰なリクエ�
 gBizConnect Node設定ファイルをgBizConnect Nodeに反映させる画面です。  
 gBizConnect Nodeの起動後、以下のURLでアクセスできます。  
 `http://node.example.jp:8080/setting.php`  
-gBizConnect Node設定画面は外部公開しないでください。  
+gBizConnect Node設定画面は外部に公開しないでください。  
 
 
 ## 3.都度同意
