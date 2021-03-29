@@ -4,11 +4,11 @@ SCRIPT_DIR=$(cd $(dirname $0); pwd)
 cd $SCRIPT_DIR
 
 #Dockerコンテナにマウントするディレクトリ・ファイルのダウンロードURL
-URL="http://XXX.XXX.XXX.XXX/XXX/XXXX.tar.gz"
+URL="https://github.com/gbizconnect/gbizconnect-node/archive/refs/tags/v1.0.0.tar.gz"
 #ダウンロードtarファイル名
-TAR_FILE_NAME="XXXX.tar.gz"
+TAR_FILE_NAME="v1.0.0.tar.gz"
 #展開後のディレクトリ名
-EXTRACT_DIR_NAME="XXXX"
+EXTRACT_DIR_NAME="gbizconnect-node-1.0.0"
 #ダウンロードファイルのリネーム（プロジェクト名）
 DEFAULT_RENAME="node"
 #ログファイル名
@@ -62,10 +62,10 @@ function set_debug {
 function set_debug_curl {
     if [ -z $5 ]; then
         out "$1 $2 $3"
-        $($1 "$2" -O)
+        $($1 "$2" -LO)
     else
         out "$1 $2 $3 $4 $5"
-        $(curl "$2" -O -x "$5")
+        $(curl "$2" -LO -x "$5")
     fi
     return $?
 }
@@ -171,9 +171,9 @@ if [ ! -e $DEFAULT_RENAME ]; then
     #Dockerコンテナにマウントするディレクトリ・ファイルのダウンロード
     if [ ! -e $TAR_FILE_NAME ]; then
         if [ -n "$proxy" ]; then
-            set_debug_curl curl $URL -O -x $proxy
+            set_debug_curl curl $URL -LO -x $proxy
         else
-            set_debug_curl curl $URL -O
+            set_debug_curl curl $URL -LO
         fi
         status=$?
         if [ $status != 0 ]; then
