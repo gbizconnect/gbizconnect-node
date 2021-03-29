@@ -1,336 +1,840 @@
 # gBizConnect Node 導入マニュアル  
-## はじめに
 
-本マニュアルは、gBizConnect Nodeの導入手順について説明したものです。  
-gBizConnect Nodeの仕様については、「[gBizConnect Node仕様書](gBizConnectNode.md)」を参照してください。
+## 1. はじめに
+　本マニュアルは、gBizConnect Nodeの導入手順について説明したものです。<br>gBizConnect Nodeの仕様については、「[gBizConnect Node仕様書](https://github.com/gbizconnect/gbizconnect-node/blob/master/docs/gBizConnectNode.md)」を参照してください。
 
-ここでは、本マニュアルで共通に使用している用語、表記について説明します。
+### 1.1.導入の全体の流れ
 
-* ホスト名、ポート番号の表記について  
-本マニュアルでは、gBizConnect Nodeを導入するサーバのホスト名は「node.example.jp」と表記します。    
-gBizConnect Node導入の際は実際のホスト名に読み替えてください。
+　gBizConnect Nodeの導入、全体の流れを下記に示します。
 
- gBizConnect NodeのDockerコンテナの公開ポートのデフォルトは以下の値です。別のポートを使用する場合は読み替えてください。  
-|Dockerコンテナ名|公開ポート番号|
+<div align="center">
+<img src="img/dounyu_flow.png" alt="全体の流れ図" title="全体の流れ図">
+
+ 図1-1-1 全体の流れ図
+</div>
+
+### 1.2.事前準備
+　gBizConnect Nodeの導入に必要なものを下記に示します。
+
+* 事前に用意が必要なもの　<br>(関連：3.1.証明書の配置)
+    * CA（認証局）が発行したサーバ証明書（PEM形式）
+    * サーバ証明書の秘密鍵（PEM形式）
+
+* 事前に準備が必要な設定
+    * 全員が必要な準備　<br>(関連：3.gBizConnect Nodeの疎通確認)
+     * 外部接続のネットワーク・セキュリティの設定
+     * 1.5.事前に必要な設定
+
+    * データ要求者が必要な準備　<br>(関連：[5.データ要求者 gBizConnect Nodeのシステム間連携の設定](#5.データ要求者gBizConnect-Nodeのシステム間連携の設定))
+     * データ要求システムの準備
+     * gBizID
+
+    * データ提供者が必要な準備　<br>(関連：[6.データ提供者 gBizConnect Nodeのシステム間連携の設定](#6.データ提供者gBizConnect-Nodeのシステム間連携の設定))
+     * 提供APIの準備
+
+### 1.3.用語の解説
+
+　用語の定義については、「[gBizConnect Node仕様書：1.1. 用語説明](https://github.com/gbizconnect/gbizconnect-node/blob/master/docs/gBizConnectNode.md)」を参照してください。
+
+### 1.4.推奨環境
+
+　gBizConnect Nodeを動作させるために、DockerとDocker Composeを導入してください。以降の導入手順については推奨環境を前提に作成しています。
+
+<div align="center">
+
+表1-4-1　推奨環境
+
+</div>
+
+|　|バージョン|
 |:-|:-|
-|edge-module|443|
-|config-nginx-php|8080|
-
- 「node.example.jp[:port]」の意味は以下の通りです。  
-「node.example.jp」はgBizConnect Nodeを導入するサーバのホスト名です。  
-「[:port]」はDockerコンテナedge-moduleの公開ポート番号で443の場合省略可能です。  
-指定例：node.example.jp、node.example.jp:443
-
- 法人データストアのAPIのポート番号は「80」で表記します。別のポートを使用する場合は読み替えてください。  
-
-
-* 用語説明  
-「gBizConnect Node設定ファイル」  
-gBizConnect Nodeに関する設定をJSON形式で定義したファイルです。  
-設定ファイルは、gBizConnect Portalからダウンロードします。  
-ダウンロードしたファイルにAPIマッピング、JSON変換等の設定を行い、gBizConnect Node設定画面からファイルを反映します。  
-
- 「njs」  
-JavaScript言語の一部で、nginxで使用できます。  
-
-* URL の構成要素に関して  
-本マニュアルでは、URL をスキーム名、ホスト名、ポート番号、パスの4つの要素で表記します。
-
- ```
-<スキーム名>://<ホスト名>[:<ポート番号>]<パス>
-```
-
-## 1. gBizConnect Portalへのシステム登録  
-### 1.1. システム登録  
-gBizConnect Nodeから他システムと連携するにはgBizConnect Portalにシステム登録と他システムのAPI利用申請、必要に応じて自身のAPI登録が必要です。詳細は「gBizConnect Portal 利用者向けマニュアル」を参照してください。　　
-
-### 1.2. gBizConnect Node設定ファイルの取得
-gBizConnect Nodeを利用するために、gBizConnect PortalでgBizConnect Node設定ファイルをダウンロードしてください。詳細は「gBizConnect Portal 利用者向けマニュアル」を参照してください。  
-
-## 2.	gBizConnect Nodeの導入
-### 2.1. gBizConnect Nodeの構成
-gBizConnect Nodeは機能を実現するために、Docker Hubに登録されている以下のDockerイメージを使用しています。  
-
-|機能||Dockerイメージ|
-|:-|:-|:-|
-|データ連携|リクエスト受付API|gbizconnect/gbizconnect-node-nginx:v0.0.1|
-||スコープ選択API||
-||法人データAPI||
-||証明書・通知書等API||
-||APIマッピング||
-||	JSON変換||
-|サービス管理|認証・認可要求||
-||ログ記録|gbizconnect/gbizconnect-node-td-agent:v0.0.1|
-||API仕様定義|swaggerapi/swagger-editor:v3.7.0|
-||API仕様公開|swaggerapi/swagger-ui:v3.24.3|
-|||clue/json-server:latest|
-||gBizConnect Node設定画面|nginx:1.17.6|
-|||php:7.4-rc-fpm-alpine3.10|
-
-### 2.2. gBizConnect Nodeの導入前の準備  
-#### 2.2.1. 名前解決の設定  
-gBizConnect Nodeを導入するサーバのホスト名は名前解決できるようにDNSを設定してください。
-
-#### 2.2.2. gBizConnect Nodeの動作環境
-gBizConnect Nodeを動作させるために、Dockerと必要に応じてDocker Composeが必要です。参考情報として動作確認を行った環境は以下の通りです。
-
-||バージョン|
-|:-|:-|
-|Docker Server (Engine)|18.09.5|
-|Docker Client|18.09.5|
-|Docker Compose|1.25.0|
-|CentOS|7.6|
+|Docker Server (Engine)|19.03.13|
+|Docker Client|19.03.13|
+|Docker Compose|1.27.4|
+|OS|DockerをサポートするOS<br>(Ubuntu 20.04.1 動作確認済み)|
 |アーキテクチャ|x86_64 / amd64|
 
-### 2.3. Dockerのインストール
-以下のURLのOSごとの手順を参照してDockerをインストールしてください。  
-https://docs.docker.com/install/  
 
-### 2.4. Docker Composeのインストール
-以下のURLのOSごとの手順を参照してDocker Composeをインストールしてください。  
-https://docs.docker.com/compose/install/
-
-### 2.5. Dockerコンテナにマウントするディレクトリ・ファイルのダウンロード  
-以下のURLからZIPファイルをダウンロードしてください。  
-https://github.com/gbizconnect/gbizconnect-node/archive/v0.0.1.zip
-
-### 2.6. Dockerコンテナにマウントするディレクトリ・ファイルの展開
-本マニュアルではgBizConnect Nodeのインストールディレクトリを $NODE_HOME=/opt/gbizconnect/gbizconnect-node-0.0.1と表記します。  
-gBizConnect Node用のディレクトリを作成し、ダウンロードしたZIPファイルを展開してください。    
-```
-mkdir /opt/gbizconnect
-cd /opt/gbizconnect
-# gbizconnect-node-0.0.1.zipをコピー
-unzip gbizconnect-node-0.0.1.zip
-```
-
-　ZIPファイル展開後のディレクトリは以下の通りです。  
-```
-/opt/gbizconnect/gbizconnect-node-0.0.1
-|-- config-nginx-php
-|-- config-php-script
-|-- docker-edge-module
-|-- docker-td-agent
-|-- docs
-|-- edge-module
-|-- jsonserver
-|-- permanent
-|-- swaggereditor
-|-- swaggerui
-|-- td-agent
-|-- docker-compose.yml
-|-- README.md
-```
-
-### 2.7.	Dockerコンテナにマウントするディレクトリ・ファイルの設定  
-#### 2.7.1. TLS通信に必要なファイルの設定
-TLS通信を使用するため、秘密鍵、サーバ証明書、およびルート証明書を用意してください。  
-
-(1)	秘密鍵、サーバ証明書、およびルート証明書のマウント    
-下表の格納するファイルパスに用意したファイルを上書きコピーしてください。
-
-|TLS通信に必要なファイル|格納するファイルパス|
-|:-|:-|
-|CA（認証局）のルート証明書（PEM形式）|$NODE_HOME/edge-module/nginx/ssl/trusted_ca_cert.crt|
-|CA（認証局）が発行したサーバ証明書（PEM形式）|$NODE_HOME/edge-module/nginx/ssl/localhost.pem|
-|秘密鍵（PEM形式）|$NODE_HOME/edge-module/nginx/ssl/localhost.key|  
-
-(2)	秘密鍵、サーバ証明書、およびルート証明書の注意事項  
-パスフレーズ付きの秘密鍵は使用できません。パスフレーズを解除してから使用してください。  
-
-#### 2.7.2.	Basic認証用のID/PWの設定  
-受付APIのBasic認証の設定を以下の手順で行ってください。  
-(1) $NODE_HOME/edge-module/nginx/pass_gen.sh に含まれるUSER, PASSWDに任意の値を設定します。  
-
-[設定例]
-```
-USER=admin
-PASSWD=password
-```
-
-(2) Basic認証用に使用する".htpasswd"ファイルを、以下のコマンドにより生成します。  
-```
-cd $NODE_HOME/edge-module/nginx
-sh pass_gen.sh
-```
-
-#### 2.7.3.	API仕様定義／公開機能のマウントファイルの設定  
-ファイルに設定されているホスト名とポート番号を修正します。  
-(1)	Swagger Editor  
-$NODE_HOME/swaggereditor/index.html の56行目のurlの「node.example.jp[:port]」を実際の値に修正します。
-```
-url:'https://node.example.jp[:port]/swaggerui/swagger.json',
-```
-
-(2) Swagger UI  
-$NODE_HOME/swaggerui/swagger.json の7行目のhostの「node.example.jp[:port]」を実際の値に修正します。
-```
-"host": "node.example.jp[:port]",
-```
-
-#### 2.7.4.	ディレクトリ、ファイルの権限  
-(1)	ディレクトリ、ファイルの権限を変更  
-(ア) 権限の変更コマンドを参考に、権限を変更してください。   
-
-|権限の変更コマンド|
-|:-|
-|chmod -R 777 $NODE_HOME/config-php-script/log|
-|chmod -R 777 $NODE_HOME/permanent|
-|chmod -R 777 $NODE_HOME/edge-module/log|
-|chmod -R 777 $NODE_HOME/td-agent|
-|chmod    644 $NODE_HOME/td-agent/edge/td-agent.conf|  
-
-(イ)	権限が適切に変更されたことを確認してください。  
-<コマンド>  
-```
-ls -l 【対象ファイル、ディレクトリ】
-```  
-<実行結果例>  
-```
--rw-r--r--. [システム部] [対象のファイル名]  
-drwxrwxrwx. [システム部] [ディレクトリ名]
-```  
-
-[先頭11文字の説明]  
-先頭1文字目(d/-): ディレクトリの場合は「d」、ファイルの場合は「-」。  
-先頭2～10文字目(r/w/x/-): 変更した権限が、777の場合は「rwxrwxrwx」、644の場合は「rw-r--r--」。
-
-#### 2.7.5.	APIマッピング  
-自システムのAPIをgBizConnectで公開する場合は、gBizConnect Node APIと自システムのAPIのマッピングを行います。gBizConnect Nodeは受け付けたリクエストをAPIマッピングにしたがってgBizConnect導入システムのAPIのエンドポイントに変換しリクエストします。  
-
-<設定方法>  
-gBizConnect Node設定ファイルの"internal_api_mappings"に、以下の項目の値を設定してください。(複数のAPIマッピングルールを設定できます。)  
-
-|キー|値|
-|:-|:-|
-|system_api_addr|gBizConnect Node導入システムのAPIのエンドポイントの<スキーム名>://<ホスト名>[:<ポート番号>]部分を記載してください。<スキーム名>はhttpsまたはhttp、<ポート番号>は標準ポート（80, 443）の場合省略可能です。|
-|system_api_uri_extract|gBizConnect Node APIのエンドポイントの<パス>を記載してください（njsの正規表現）。|
-|system_api_uri_replace|マッピングさせる、gBizConnect Node導入システムのAPIのエンドポイントの<パス>を記載してください（njsの正規表現）。|  
-
-※"system_api_uri_extract"、"system_api_uri_replace"は、設定された値を正規表現とみなします。  
-　njsの正規表現を用いて記載してください。
-
-<njsの正規表現について>  
-njsは[ECMAScript 5.1](https://nginx.org/en/docs/njs/)に準拠しており、以下のページの正規表現を使用できます。  
-http://www.ecma-international.org/ecma-262/5.1/#sec-15.10.1  
-
-記載例  
-```json
-"internal_api_mappings" : [
-    {
-        "system_api_addr" : "http://app.datastore.jp",
-        "system_api_uri_extract" : "^/v1/corporations/([0-9]+)$",
-        "system_api_uri_replace" : "/corporations/$1"
-    },
-    {
-        "system_api_addr" : "http://app.datastore.jp:8080",
-        "system_api_uri_extract" : "^/v1/corporations/([0-9]+)/notifications/([0-9]+)$",
-        "system_api_uri_replace" : "/corporations/$1/notifications/$2"
-    }
-]
-```
-
-上記記載例のマッピング結果は下記になります。  
-　　`https://node.example.jp/v1/corporations/1234567890123`  
-　　  -> `http://app.datastore.jp/corporations/1234567890123`
-
-　　`https://node.example.jp/v1/corporations/1234567890123/notifications/1`  
-　　-> `http://app.datastore.jp:8080/corporations/1234567890123/notifications/1`
-
-#### 2.7.6.	JSON変換  
-JSON変換機能を使用する場合は以下の設定を行います。  
-
-<設定方法>  
-* json_convertsの設定  
-gBizConnect Node設定ファイルの"json_converts"に、以下の項目の値を設定してください。(複数のJSON変換ルールを設定できます。)
-
-|キー|値|
-|:-|:-|
-|json_convert_get_flag|導入システムのJSONのキーをgBizConnectの標準法人データJSONのキーに変換する実行有無を記載してください。<br>true：JSON変換あり、false：JSON変換なし|
-|json_convert_set_flag|gBizConnectの標準法人データJSONのキーを導入システムのJSONのキーに変換する実行有無を記載してください。<br>true：JSON変換あり、false：JSON変換なし|
-|json_convert_uri|gBizConnect Node APIのエンドポイントのパスを記載してください（njsの正規表現）。|
-|json_convert_method|gBizConnect Node APIのエンドポイントのメソッドを記載してください。|
-|json_convert_rule|JSON変換で実行するルール名を記載してください。json_convert_rulesのキーを一つ指定できます。|  
-
-記載例  
-```json
-"json_converts":[
-    {
-        "json_convert_get_flag" : true,
-			  "json_convert_set_flag" : false,
-			  "json_convert_uri" : "^/v1/corporations$",
-			  "json_convert_method" : "GET",
-			  "json_convert_rule" : "rule_corporations_list"
-		},
-		{
-			  "json_convert_get_flag" : true,
-			  "json_convert_set_flag" : true,
-			  "json_convert_uri" : "^/v1/corporations/([0-9]+)$",
-			  "json_convert_method" : "PATCH",
-			  "json_convert_rule" : "rule_corporations"
-		}
-]
-```
-
-
-* json_convert_rulesの設定  
-gBizConnect Node設定ファイルの"json_convert_rules"に、以下の項目の値を設定してください。
-
-|キー|値|
-|:-|:-|
-|JSON変換ルール名（手動設定）|キーに任意のユニークな名前を設定します。|
-|response|gBizConnectの標準法人データJSONのキーの名称／階層|
-|datastore|gBizConnect Node導入システムのAPIのレスポンスのJSONのキーの名称／階層|
-
-記載例  
-```json
-"json_convert_rules" : {
-    "rule_corporations" : [
-	      {
-		        "response" : "基本.宛先.法人番号",
-		        "datastore" : "corporate-number"
-	      },
-      	{
-		        "response" : "基本.宛先.法人名",
-		        "datastore" : "corporate-name"
-	      },
-	      {
-		        "response" : "基本.内容.従業員数",
-		        "datastore" : "employees.all"
-	      },
-	      {
-		        "response" : "基本.内容.正社員数",
-		        "datastore" : "employees.regular"
-	      },
-	      {
-		        "response" : "基本.連絡先.電話番号",
-		        "datastore" : "phonenumber"
-	      }
-    ],
-    "rule_corporations_list" : [
-        {
-            "response" : "基本.宛先.法人番号",
-            "datastore" : "corporate-number"
-        }
-    ]
-}
-```  
-
-<JSON変換の注意事項>
-* "json_convert_rules"に記載したキーのみ出力されます。  
-（記載しないキーおよび値は削除となります）  
-* JSONの階層を示す場合は、親と子の間にドット(.)を付与して表現してください。  
-* 変換前のJSONが配列の場合は、それぞれ変換されます。  
-
-<JSON変換例>   
 <div align="center">
-<img src="img/conv.png">
-</div>  
+
+表1-4-2　推奨スペック
+
+</div>
+
+|　|バージョン|
+|:-|:-|
+|CPU|8コア|
+|メモリ|16GB|
+
+※推奨環境は、gBizConnect運営事務局にて、動作を確認したgBizConnect NodeのバージョンとDockerバージョンの組み合わせになります。<br>
+※マニュアルに記載していない環境(バージョン、組み合わせ)は動作保証対象外です。<br>
+※gBizConnect Nodeのマイナーバージョンアップは原則後方互換です。<br>
+※gBizConnect Nodeのバージョンの考え方は以下の通りとします。<br>
+　バージョンナンバーは、メジャー.マイナー.パッチ とする。<br>
+　APIの変更に互換性のない場合はメジャーバージョンを上げます。<br>
+　後方互換性があり機能性を追加した場合はマイナーバージョン上げます。<br>
+　後方互換性を伴うバグ修正をした場合はパッチバージョンを上げます。<br>
+
+### 1.5.事前に必要な設定
+#### 1.5.1.名前解決の設定
+
+　gBizConnect Nodeを導入するサーバのホスト名は名前解決できるようにDNSを設定してください。<br>
+　※設定しない場合、「[5.データ要求者 gBizConnect Nodeのシステム間連携の設定](#5.データ要求者gBizConnect-Nodeのシステム間連携の設定)」、「[6.データ提供者 gBizConnect Nodeのシステム間連携の設定](#6.データ提供者gBizConnect-Nodeのシステム間連携の設定)」の手順が、実施できない可能性があります。
+
+#### 1.5.2.Dockerのインストール
+
+　下記のURLのOSごとの手順を参照してDockerをインストールしてください。  
+　https://docs.docker.com/install/
+
+#### 1.5.3.Docker Composeのインストール
+
+　下記のURLのOSごとの手順を参照してDocker Composeをインストールしてください。  
+　https://docs.docker.com/compose/install/
+
+※Docker Composeを使用しない場合、「[2.1.gBizConnect Node導入設定のシェルスクリプト実行](#2.1.gBizConnect-Node導入設定のシェルスクリプト実行)」が実行できません。<br>
+
+### 1.6.各コンテナの説明
+
+　gBizConnect Nodeの各コンテナの説明を下記に示す。
+
+</div>
+
+<div align="center">
+
+表1-6-1　各コンテナの説明
+
+</div>
+
+|コンテナ名|説明|
+|:-|:-|
+|node_edge-module_1|データ連携機能|
+|node_config-nginx-php_1|Node設定ファイル設定用の画面|
+|node_swaggereditor_1|API仕様定義機能|
+|node_config-php-script_1|Node設定機能（Node設定ファイル取込）|
+|node_td-agent_1|ログ転送機能|
+|node_jsonserver_1|API仕様公開を実施する、サンプルデータサーバ|
+|node_swaggerui_1|API仕様公開機能|
+
+</div>
+
+## 2.gBizConnect Nodeの導入・起動
+
+### 2.1.gBizConnect Node導入設定のシェルスクリプト実行
+
+　gBizConnect Node導入設定用のシェルスクリプト実行の流れを下記に示します。
+
+(1)gBizConnect Nodeの導入に必要な証明書を、下記の名前で任意の場所に配置します。
+
+<div align="center">
+
+表2-1　証明書の名称
+
+</div>
+
+|証明書|証明書のファイル名|
+|:-|:-|
+|CA（認証局）が発行したサーバ証明書（PEM形式）|server.crt|
+|サーバ証明書の秘密鍵（PEM形式）|private.key|  
+
+(2)下記のコマンドで、gBizConnect Nodeの導入設定のシェルスクリプトをダウンロードします。
+
+〇コマンド
+
+```
+$ curl https://github.com/gbizconnect/gbizconnect-node/blob/master/install-1.0.0.sh -O
+```
+
+(3)取得したシェルスクリプト(install-1.0.0.sh)を下記のコマンドで実行します。
+
+〇install-1.0.0.shの実行内容
+  * gBizConnect Node導入に必要な資材をGitHubから取得
+  * 証明書を資材の中に配置
+  * 資材の各種フォルダの権限設定変更
+  * gBizConnect Node環境変数設定
+  * ホストにgBizConnect Nodeを認識してもらうためのDNS設定
+
+〇コマンド例
+
+```
+$ bash install-1.0.0.sh \
+--fqdn node.example.jp \
+--certificate opt/node/example/server.crt \
+--private-key opt/node/example/private.key \
+--dns 10.00.00.00
+```
+
+〇コマンド例の書き換え箇所
+  * node.example.jp ：gBizConnect Nodeを導入したマシンのホスト名
+  * opt/node/example/server.crt ：(1)でCA（認証局）が発行したサーバ証明書を配置した任意のディレクトリ
+  * opt/node/example/private.key ：(1)でサーバ証明書の秘密鍵（PEM形式）を配置した任意のディレクトリ
+  * 10.00.00.00 ：DNSサーバの IP アドレス
+
+※「--help」もしくは[-h]オプションをつけることで、パラメータについての説明を表示することができます。
+
+〇結果
+
+```
+YYYY/MM/DD HH:MM:SS [notice]: sudo bash /home/ubuntu/node/build.sh [--project-name arg] 入力して、コンテナを立ち上げてください。
+```
+
+(4)(3)が正常に実行出来たら、gBizConnect Nodeを起動するため、nodeディレクトリに含まれるbuild.shを実行する。
+
+〇build.shの実行内容
+  * gBizConnect Nodeのコンテナの作成・起動
+
+〇コマンド
+
+```
+$sudo bash /home/ubuntu/node/build.sh
+```
+
+〇結果
+
+```
+Building with native build. Learn about native build in Compose here: https://docs.docker.com/go/compose-native-build/
+Pulling swaggerui (swaggerapi/swagger-ui:v3.38.0)...
+v3.38.0: Pulling from swaggerapi/swagger-ui
+Digest: sha256:f7c2bb04e00fe1d8c7df97ded89877c4242099586f564f89cbbc86a936a7c2e2
+Status: Downloaded newer image for swaggerapi/swagger-ui:v3.38.0
+Pulling swaggereditor (swaggerapi/swagger-editor:v3.14.8)...
+v3.14.8: Pulling from swaggerapi/swagger-editor
+Digest: sha256:6d00ea61ba099e72601687987d64db1fd36aaf9a6f1e4a0c667afbb5485d6962
+Status: Downloaded newer image for swaggerapi/swagger-editor:v3.14.8
+Pulling jsonserver (clue/json-server:latest)...
+latest: Pulling from clue/json-server
+Digest: sha256:955daef288324b1d7b3f51c580b2978d66485dd3a65b75eb718b9bb35d893f1a
+Status: Downloaded newer image for clue/json-server:latest
+Pulling config-nginx-php (nginx:1.18.0-alpine)...
+1.18.0-alpine: Pulling from library/nginx
+Digest: sha256:7ae8e5c3080f6012f8dc719e2308e60e015fcfa281c3b12bf95614bd8b6911d6
+Status: Downloaded newer image for nginx:1.18.0-alpine
+Creating node_td-agent_1 ...
+Creating node_config-php-script_1 ...
+Creating node_jsonserver_1        ...
+Creating node_swaggereditor_1     ...
+Creating node_swaggerui_1         ...
+Creating node_td-agent_1          ... done
+Creating node_jsonserver_1        ... done
+Creating node_swaggerui_1         ... done
+Creating node_config-php-script_1 ... done
+Creating node_config-nginx-php_1  ...
+Creating node_swaggereditor_1     ... done
+Creating node_edge-module_1       ...
+Creating node_config-nginx-php_1  ... done
+Creating node_edge-module_1       ... done
+          Name                        Command               State               Ports
+--------------------------------------------------------------------------------------------------
+node_config-nginx-php_1    /docker-entrypoint.sh ngin ...   Up      80/tcp, 0.0.0.0:8080->8080/tcp
+node_config-php-script_1   docker-php-entrypoint /bin ...   Up      9000/tcp
+node_edge-module_1         /bin/sh -c usermod -u 1000 ...   Up      0.0.0.0:443->443/tcp, 80/tcp
+node_jsonserver_1          bash /run.sh -r routes.json      Up      80/tcp
+node_swaggereditor_1       /docker-entrypoint.sh /bin ...   Up      80/tcp, 8080/tcp
+node_swaggerui_1           /docker-entrypoint.sh /bin ...   Up      80/tcp, 8080/tcp
+node_td-agent_1            /bin/sh -c "/sbin/init"          Up      0.0.0.0:24224->24224/tcp
+```
+
+※結果の後半の「State」 「Up」になっていればコンテナが正常に起動しています。
+
+## 3.gBizConnect Nodeの疎通確認
+
+### 3.1.導入したgBizConnect Nodeの疎通確認
+
+(1)下記のコマンドを実行し、下記の結果が表示されることを確認します。
+
+〇コマンド例
+
+```
+curl https://localhost/communication/status
+```
+
+〇結果
+
+```
+{
+        "message": "認可サーバへアクセスできています。Ｇビズコネクトポータルからダウンロードしたノード設定ファイルをノードに反映してください。",
+        "authorization_server_error_response": {
+                "error": "unauthorized_client",
+                "error_description": "INVALID_CREDENTIALS: Invalid client credentials"
+        }
+}
+```
+
+※疎通コマンドが結果の通りにならない場合は、[gBizConnect FAQ](./gBizConnect_faq.docx)を参照してください。<br>
+※上記のコマンド例はセキュリティリスクの観点で内部からの実行のみ許可としています。
+
+## 4.gBizConnect Nodeのシステム間連携の事前設定
+
+### 4.1.gBizConnect Portalでアカウントの作成
+
+(1)[「gBizConnectに参加する」](https://portal.connect.gbiz.go.jp/use_flow)から、「アカウント登録」を選択します。
+
+<div align="center">
+<img src="img/account_set1.png" alt="gBizConnectに参加する画面" title="gBizConnectに参加する画面">
+
+ 図4-1-1 gBizConnectに参加する画面
+</div>
+
+(2)図4-1-2の画面で登録するアカウントの情報を入力します。
+
+<div align="center">
+<img src="img/account_set2.png" alt="アカウント登録申請画面" title="アカウント登録申請画面">
+
+ 図4-1-2 アカウント登録申請画面
+</div>
+
+(3)図4-1-3の画面で「確定する」を選択し、図4-1-4のようなアカウント登録申請完了画面が表示されます。
+
+<div align="center">
+<img src="img/account_set3.png" alt="アカウント登録申請確認画面" title="アカウント登録申請確認画面">
+
+ 図4-1-3 アカウント登録申請確認画面
+</div>
+
+<div align="center">
+<img src="img/account_set4.png" alt="アカウント登録申請完了画面" title="アカウント登録申請完了画面">
+
+ 図4-1-4 アカウント登録申請完了画面
+</div>
+
+(4)アカウント登録承認後、図4-1-4のようなメールが届くことを確認してください。
+
+<div align="center">
+<img src="img/account_set5.png" alt="アカウント登録承認後のメール" title="アカウント登録承認後のメール">
+
+ 図4-1-5 アカウント登録承認後のメール
+</div>
+
+### 4.2.gBizConnect PortalでgBizConnect接続システムの登録
+
+(1)[「gBizConnectに参加する」](https://portal.connect.gbiz.go.jp/use_flow)から「システム登録」を選択する。
+
+<div align="center">
+<img src="img/system_set1.png" alt="gBizConnectに参加する画面" title="gBizConnectに参加する画面">
+
+ 図4-2-1 gBizConnectに参加する画面
+</div>
+
+(2)図4-2-2の画面でシステムの情報を入力します。
+
+<div align="center">
+<img src="img/system_set2.png" alt="システム情報登録申請画面" title="システム情報登録申請画面">
+
+ 図4-2-2 システム情報登録申請画面
+</div>
+
+<br>
+
+<div align="center">
+
+表4-2-1　システム情報登録申請、入力項目説明
+
+</div>
+
+|項番|項目名|説明|
+|:-|:-|:-|
+|1|システム名|登録したいシステムの名称|
+|2|システムURL|登録したいシステムのWebサイト|
+|3|ノードURL|導入したgBizConnect NodeのURL|
+|4|システム概要|登録したいシステムの概要|
+|5|運営組織名|登録したいシステムの運営組織名称|
+|6|運営部署名|登録したいシステムの運営部署名称|
+|7|住所|登録したいシステムの運営組織の住所|
+|8|メールアドレス|登録したいシステムの管理者のメールアドレス|
+|9|メールアドレス再入力|メールアドレスの確認|
+|10|電話番号|登録したいシステムの管理者の電話番号|
+|11|システム情報の公開|登録したいシステムの公開/非公開の設定|
+
+<br>
+
+(3)図4-2-3の画面で「確定する」を選択し、図4-2-4のようなシステム情報登録完了画面が表示されます。
+
+<div align="center">
+<img src="img/system_set3.png" alt="システム情報登録確認画面" title="システム情報登録確認画面">
+
+ 図4-2-3 システム情報登録確認画面
+</div>
+
+<div align="center">
+<img src="img/system_set4.png" alt="システム情報登録完了画面" title="システム情報登録完了画面">
+
+ 図4-2-4 システム情報登録完了画面
+</div>
+
+# データ要求者の設定
+
+本設定は、データ要求者の設定です。データ提供者の設定は「[6.データ提供者 gBizConnect Nodeのシステム間連携の設定](#6.データ提供者gBizConnect-Nodeのシステム間連携の設定)」を参照してください。
+
+## 5.データ要求者 gBizConnect Nodeのシステム間連携の設定
+### 5.1.gBizConnect PortalでAPI利用申請
+
+(1)[「gBizConnectに参加する」](https://portal.connect.gbiz.go.jp/use_flow)から「APIを利用する」を選択します。
+
+<div align="center">
+<img src="img/api_riyou1.png" alt="gBizConnectに参加する画面" title="gBizConnectに参加する画面">
+
+ 図5-1-1 gBizConnectに参加する画面
+</div>
+
+(2)表示されたAPIを利用する画面から「APIを探す」を選択します。
+
+<div align="center">
+<img src="img/api_riyou2.png" alt="APIを利用する画面" title="APIを利用する画面">
+
+ 図5-1-2 APIを利用する画面
+</div>
+
+(3)表示された一覧からAPIを利用したいシステムの選択します。
+
+<div align="center">
+<img src="img/api_riyou3.png" alt="登録済みAPI一覧画面" title="登録済みAPI一覧画面">
+
+ 図5-1-3 登録済みAPI一覧画面
+</div>
+
+(4)選択したシステムのAPIの一覧から使用したいAPIの選択します。
+
+<div align="center">
+<img src="img/api_riyou4.png" alt="API検索画面" title="API検索画面">
+
+ 図5-1-4 API検索画面
+</div>
+
+(5)図5-1-5のような画面が表示され、APIの利用に必要な情報を入力します。
+
+<div align="center">
+<img src="img/api_riyou5.png" alt="API利用申請画面" title="API利用申請画面">
+
+ 図5-1-5 API利用申請画面
+</div>
+
+(6)図5-1-6の画面で「申請する」を選択し、図5-1-7のようなAPIの利用申請完了画面が表示されます。
+
+<div align="center">
+<img src="img/api_riyou6.png" alt="API利用申請確認画面" title="API利用申請確認画面">
+
+ 図5-1-6 API利用申請確認画面
+</div>
+
+<div align="center">
+<img src="img/api_riyou7.png" alt="API利用申請完了画面" title="API利用申請完了画面">
+
+ 図5-1-7 API利用申請完了画面
+</div>
+
+### 5.2.(任意)gBizConnectの都度同意の設定
+
+ 　この項目は都度同意によるシステム間連携を実施する場合の設定です。任意の設定のため、必要に応じて設定してください。
+
+#### 5.2.1gBizConnectの都度同意の流れ
+
+都度同意の流れは次の通りです。
+
+<div align="center">
+
+表5-2-1　事前設定
+
+</div>
+
+|No.|対象ユーザー|システムで実装が必要な内容|対応する手順|
+|:-|:-|:-|:-|
+|1|データ提供者|gBizConnect Portalで標準データ変換設定を実施する。(データ提供システムのデータが法人標準データの形式であれば不要）|[6.5.2データ提供者で必要な都度同意の事前設定](#6.5.2データ提供者で必要な都度同意の事前設定)|
+|2|データ提供者|gBizConnect PortalのNode設定画面(都度同意)で「データ提供範囲設定」の項目を設定|[6.5.2データ提供者で必要な都度同意の事前設定](#6.5.2データ提供者で必要な都度同意の事前設定)|
+|3|データ要求者|gBizConnect PortalのNode設定画面(都度同意)で「認証認可設定」の項目を設定 |[5.2.1データ要求者で必要な都度同意の事前設定](#5.2.1データ要求者で必要な都度同意の事前設定)|
+|4|データ提供者/データ要求者|双方でNode設定ファイルのダウンロード・反映|[5.3.Node設定ファイルをgBizConnect Nodeへ反映](#5.3.Node設定ファイルをgBizConnect-Nodeへ反映)|
+
+<div align="center">
+
+表5-2-1　都度同意でシステム間連携する際の流れ
+
+</div>
+
+|No.|対象ユーザー|システムで実装が必要な内容|対応する手順|
+|:-|:-|:-|:-|
+|1|データ要求者|データ要求者システムから、データ要求者システムのスコープ選択画面取得APIを利用しスコープ選択画面を呼び出す|[5.5.都度同意によるシステム間連携](5.5.都度同意によるシステム間連携)|
+|2|データ要求者|スコープ選択画面で取得するデータのスコープを選択|[5.5.都度同意によるシステム間連携](5.5.都度同意によるシステム間連携)|
+|3|データ要求者|gBizIDへログイン画面が表示されるため、認証情報を入力し認証|[5.5.都度同意によるシステム間連携](5.5.都度同意によるシステム間連携)|
+|4|データ要求者|同意画面で同意すると、データ要求者Nodeから都度同意のシステム間連携に必要な情報がリダイレクトがされる|[5.5.都度同意によるシステム間連携](5.5.都度同意によるシステム間連携)|
+|5|データ要求者|リダイレクトされた情報を利用し、データ要求者システムからデータ要求者Nodeの都度同意APIを呼び出すことで、Node間のAPI連携が行われ、データ要求者システムにスコープで絞り込まれた内容が返却される。|[5.5.都度同意によるシステム間連携](5.5.都度同意によるシステム間連携)|
+
+都度同意の画面遷移のイメージは次のとおりです。
+<div align="center">
+<img src="img/tsudodouiflow.png">
+図2.6-1 都度同意画面遷移イメージ
+</div>
+<br>
+<a name="jump"></a>
+
+#### 5.2.1データ要求者で必要な都度同意の事前設定
+
+ (1)図5-2-1の画面で「ノードのオプションを設定する。」を選択します。
+
+ <div align="center">
+ <img src="img/tudodoui_set1.png" alt="gBizConnectに参加する画面" title="gBizConnectに参加する画面">
+
+  図5-2-1 gBizConnectに参加する画面
+ </div>
+
+ (4)図5-2-3の画面で、設定を変更したいシステムを選択します。
+
+ <div align="center">
+ <img src="img/tudodoui_set2.png" alt="システム一覧画面(案内表示あり)"システム一覧画面(案内表示あり)">
+
+  図5-2-2 システム一覧画面(案内表示あり)
+ </div>
+
+<div align="center">
+ <img src="img/tudodoui_set3.png" alt="システム一覧画面"システム一覧画面">
+
+  図5-2-3 システム一覧画面
+ </div>
+
+ (5)図5-2-4のNode設定画面(APIマッピング)で「都度同意」を選択します。
+
+ <div align="center">
+ <img src="img/tudodoui_set4.png" alt="Node設定画面(APIマッピング)" title="Node設定画面(APIマッピング)">
+
+  図5-2-4 Node設定画面(APIマッピング)
+ </div>
+
+ (5)図5-2-5のNode設定画面(都度同意)で「都度同意設定情報」の必要な項目を入力し、「設定を保存する」を選択します。
+
+ <div align="center">
+ <img src="img/tudodoui_set5.png" alt="Node設定画面(都度同意)" title="Node設定画面(都度同意)">
+
+  図5-2-5 Node設定画面(都度同意)
+ </div>
+
+ (5)図5-2-6のようなダイアログの「OK」を選択し、図5-2-7に表示が変われば設定完了となります。
+
+ <div align="center">
+ <img src="img/tudodoui_set6.png" alt="設定保存確認ダイアログ" title="設定保存確認ダイアログ">
+
+  図5-2-6 設定保存確認ダイアログ
+ </div>
+
+ <div align="center">
+ <img src="img/tudodoui_set7.png" alt="設定保存完了ダイアログ" title="設定保存完了ダイアログ">
+
+  図5-2-7 設定保存完了ダイアログ
+ </div>
 
 
-JSONデータ  
-・ PATCHリクエスト前の法人データストアのJSONデータ
-```json
+### 5.3.Node設定ファイルをgBizConnect Nodeへ反映
+
+※本手順はデータ提供者側で「[5.1.gBizConnect PortalでAPI利用申請](#5.1.gBizConnect-PortalでAPI利用申請)」で実施したAPI利用申請が承認されていることが前提です。API利用申請一覧画面から、申請したAPIのステータスが「完了」になっていることを確認してください。
+
+</div>
+
+<div align="center">
+<img src="img/Node_set_douwnload0.png" alt="API利用申請一覧画面" title="API利用申請一覧">
+
+図5-3-1 API利用申請一覧画面
+</div>
+
+(1)[「gBizConnectに参加する」](https://portal.connect.gbiz.go.jp/use_flow)から「ノードのオプションを設定する」を選択します。
+
+</div>
+
+<div align="center">
+<img src="img/Node_set_douwnload1.png" alt="gBizConnectに参加する画面" title="gBizConnectに参加する画面">
+
+図5-3-2 gBizConnectに参加する画面
+</div>
+
+(2)図5-3-3の画面から任意のシステムの「ダウンロード」を選択し、Node設定ファイルをダウンロードします。
+
+</div>
+
+<div align="center">
+<img src="img/Node_set_douwnload2.png" alt="システム一覧画面" title="システム一覧画面">
+
+ 図5-3-3 システム一覧画面
+</div>
+
+(3)gBizConnect Node設定画面で下記のURL をブラウザで開いて下さい。URLの「node.example.jp[:port]」をgBizConnect Nodeを導入したマシンのホスト名に修正します。
+
+〇gBizConnect Node設定画面のURL
+
+```
+http://node.example.jp:8080/setting.php
+```
+<br>
+
+<div align="center">
+<img src="img/Node_set_douwnload3.png">
+
+図5-3-4 gBizConnect Node設定画面
+</div>
+
+(4)図5-3-4の画面で「ファイルの選択」を選択し(2)でダウンロードしてしたNode設定ファイルを選択します。
+
+(5)図5-3-4の画面で「保存」を選択し、導入したgBizConnect NodeにNode設定ファイルを反映してください。
+
+### 5.4.事前同意によるシステム間連携
+
+　この項目は事前同意によるシステム間連携する場合の手順となります。都度同意によるシステム間連携は[5.5.都度同意によるシステム間連携](#5.5.都度同意によるシステム間連携)を参照してください。<br>
+API利用申請したAPIを呼び出し、データ連携できることを確認してください。コマンドの例を下記に示します。
+
+〇コマンド例
+
+```
+curl -u UserID:PassWord -X POST \
+'https://node.youkyu.example.jp/v1/reception_jizen' \
+-H "accept: application/json" \
+--data-urlencode "call_api=https://node.teikyou.example.jp/v1/example" \
+--data-urlencode "method=GET" \
+--data-urlencode "header=Accept: application/json" \
+--data-urlencode "header=Content-Type: application/json" 
+```
+
+〇コマンド例の修正箇所
+ * UserID：installシェルで登録したユーザ名
+ * PassWord：installシェルで登録したパスワード
+ * https://node.youkyu.example.jp ：ノードを導入したホストのドメイン
+ * https://node.teikyou.example.jp ：API利用申請したNodeのホストのドメイン
+ * /v1/example ：API利用申請したAPI
+
+※API利用申請承認後のNode設定ファイルをAPI公開側で反映していない場合、エラーになります。
+※上記以外のパターンについて補足事項([7.8.事前同意によるシステム間連携のリクエストパターン](#7.8.事前同意によるシステム間連携のリクエストパターン))に記載しております。
+
+### 5.5.都度同意によるシステム間連携
+
+この項目は都度同意によるシステム間連携する場合の手順となります。事前同意によるシステム間連携は[5.4.事前同意によるシステム間連携](#5.4.事前同意によるシステム間連携)を参照してください。
+また下記の手順で記載するgBizConnect NodeのAPIの詳細は(gBizConnect Node API仕様)[https://conn-portal.connect.gbiz.go.jp/top/menu]を合わせてご参照ください
+
+(1)データ要求者システムからデータ提供者Nodeの下記のパラメータを指定しAPIを呼び出して下さい。
+
+〇呼び出し対象API
+
+```
+/scope.html
+```
+〇パラメータ
+
+```
+state *
+```
+
+※string(query)
+※*：呼び出し側システムで生成するランダム文字列（CSRF対策に使用）
+
+(2)(1)のAPIを呼び出すことで、スコープ選択画面表示されるので、取得したいデータのスコープを選択する。<br>
+
+(3)gBizID認証画面が表示されるので、ログインID、パスワードを入力する。<br>
+
+(4)(3)で認証が成功すると同意画面が表示されるので、同意する。<br>
+
+(5)(4)で同意すると、データ要求者Nodeはブラウザからデータ要求者システムにパラメータ(client_id、state、nonce)付きでリダイレクトさせる。<br>
+　　その際、データ要求者システムでパラメータ(state)の値が(1)で渡したものと⼀致するかチェックする。<br>
+
+(6)(5)で確認ができたら、データ要求者システムからデータ要求者Nodeの都度同意リクエスト受付APIを呼び出す<br>
+　リダイレクトのパラメータ(client_id)の値でデータ要求者システムで選択したデータ提供者Nodeを判定して呼び出すAPIリクエストを作成する<br>
+　また、パラメータnonceを都度同意リクエストパラメータに追加し、gBizConnect Nodeの都度同意リクエスト受付APIを呼び出す。
+
+〇コマンド例
+
+```
+curl -u admin:password -X POST  'https://example_youkyu_node.com/v1/reception_tsudo'  \
+-H "accept: application/json"   \
+-H "Content-Type: application/x-www-form-urlencoded"  \
+--data-urlencode "call_api=https://example_teikyou_node/v1/corporations/3010601021713"  \
+--data-urlencode "method=GET"  --data-urlencode "header=Accept: application/json"  \
+--data-urlencode "header=Content-Type: application/json"  \
+--data-urlencode "nonce: youkyu_nonce"  \
+```
+
+〇コマンド例の修正箇所
+
+```
+https://example_youkyu_node.com：データ提供者Nodeのドメイン、パラメータ(client_id)の値が一致するもの。
+youkyu_nonce：リダイレクトで取得したパラメータ(nonce)
+```
+
+# データ提供者の設定
+
+本設定は、データ提供者の設定です。データ要求者の設定は「[5.データ要求者 gBizConnect Nodeのシステム間連携の設定](#5.データ要求者gBizConnect-Nodeのシステム間連携の設定)」を参照してください。
+
+## 6.データ提供者 gBizConnect Nodeのシステム間連携の設定
+### 6.1.gBizConnect PortalでAPI登録
+
+※本設定を実施するには、「[4.2.gBizConnect PortalでgBizConnect接続システムの登録](#4.2.gBizConnect-PortalでgBizConnect接続システムの登録)」の手順で事前にシステム登録をする必要があります。
+
+(1)[「gBizConnectに参加する」](https://portal.connect.gbiz.go.jp/use_flow)から「APIを公開する」を選択します。
+
+<div align="center">
+<img src="img/api_set0.png" alt="gBizConnectに参加する画面" title="gBizConnectに参加する画面">
+
+ 図6-1-1 gBizConnectに参加する画面
+</div>
+
+(2)図6-1-2のシステム一覧画面から任意のシステムの「API登録」を選択します。
+
+<div align="center">
+<img src="img/api_set1.png" alt="システム一覧画面" title="システム一覧画面">
+
+ 図6-1-2 システム一覧画面
+</div>
+
+(2)図6-1-3の画面で登録したいAPIの情報を入力します。
+
+<div align="center">
+<img src="img/api_set2.png" alt="API情報登録画面" title="API情報登録画面">
+
+ 図6-1-3 API情報登録画面
+</div>
+
+「エンドポイントURI」は次の通りに設定してください。
+
+〇エンドポイントURI入力例
+
+```
+登録したいAPI：https://node.example.jp/v1/corporations/1234567890123
+エンドポイントURI：https://node.example.jp/v1/corporations/{corporate_number}
+```
+
+※エンドポイントURIで「{}」表記は任意の値を表します。
+
+(3)図6-1-4の画面で「確定する」を選択し、図6-1-5の画面が表示されます。
+
+<div align="center">
+<img src="img/api_set3.png" alt="API情報登録確認画面" title="API情報登録確認画面">
+
+ 図6-1-4 API情報登録確認画面
+</div>
+
+<div align="center">
+<img src="img/api_set4.png" alt="API情報登録終了画面" title="API情報登録終了画面">
+
+ 図6-1-5 API情報登録終了画面
+</div>
+
+### 6.2.1gBizConnect PortalでAPIマッピング
+
+gBizConnect Nodeでは、APIマッピングすることで、登録されたAPIからデータ提供システムのAPIに変換し、データ提供システムからデータを取得します。
+
+(1)[「gBizConnectに参加する」](https://portal.connect.gbiz.go.jp/use_flow)から「APIを公開する」を選択します。
+
+<div align="center">
+<img src="img/api_mapping_set1.png" alt="gBizConnectに参加する画面" title="gBizConnectに参加する画面">
+
+ 図6-2-1 gBizConnectに参加する画面
+</div>
+
+(2)図6-2-2のシステム一覧画面から任意のシステムの「Node設定」を選択します。
+
+<div align="center">
+<img src="img/api_mapping_set2.png" alt="システム一覧画面" title="システム一覧画面">
+
+ 図6-2-2 システム一覧画面
+</div>
+
+(3)下記の例を参考に図6-2-3の画面で必要な情報を各ダイアログに入力し、「設定を保存」を選択する。
+
+<div align="center">
+
+表6-2-1　APIマッピング設定
+
+</div>
+
+|キー|値|
+|:-|:-|
+|システムAPIエンドポイントドメイン|gBizConnect Node導入システムのAPIのエンドポイントの<スキーム名>://<ホスト名>[:<ポート番号>]部分を記載してください。<スキーム名>はhttpsまたはhttp、<ポート番号>は標準ポート（80, 443）の場合省略可能です。|
+|NodeAPIエンドポイントパス抽出正規表現|gBizConnect Node APIのエンドポイントの<パス>を記載してください（njsの正規表現）。|
+|システムAPIエンドポイントパス置換正規表現|マッピングさせる、gBizConnect Node導入システムのAPIのエンドポイントの<パス>を記載してください（njsの正規表現）。|
+
+
+※"NodeAPIエンドポイントパス抽出正規表現"、"システムAPIエンドポイントパス置換正規表現"は、設定された値を正規表現とみなします。
+　njsの正規表現を用いて記載してください。<br>
+
+〇njsの正規表現について<br>
+njsはECMAScript 5.1に準拠しており、以下のページの正規表現を使用できます。<br>
+http://www.ecma-international.org/ecma-262/5.1/#sec-15.10.1
+
+〇設定例
+
+・API登録(エンドポイントURI)
+```
+エンドポイントURL：https://node.example.jp/v1/corporations/{corporate_number}
+```
+
+・APIマッピング
+```
+システムAPIエンドポイントドメイン：https://app.datastore.jp
+NodeAPIエンドポイントパス抽出正規表現：/v1/corporations/([0-9]+)
+NodeAPIエンドポイントパス抽出正規表現：/corporate/v1/corporate_number/$1
+```
+
+・上記例でAPIマッピングによる変換が行われた結果。
+
+```
+データ要求者Nodeからのリクエスト：https://node.example.jp/v1/corporations/1234567890123
+データ提供システムへのリクエスト：https://app.datastore.jp/corporate/v1/corporate_number/1234567890123
+```
+
+<div align="center">
+<img src="img/api_mapping_set3.png" alt="Node設定画面（APIマッピング）" title="Node設定画面（APIマッピング">
+
+ 図6-2-3 Node設定画面（APIマッピング)
+</div>
+
+(4)図6-2-4のようなダイアログの「OK」を選択し、図6-2-5に表示が変われば設定完了となります。
+
+<div align="center">
+<img src="img/api_mapping_set4.png" alt="設定保存確認ダイアログ" title="設定保存確認ダイアログ">
+
+ 図6-2-4 設定保存確認ダイアログ
+</div>
+
+<div align="center">
+<img src="img/api_mapping_set5.png" alt="設定保存完了ダイアログ" title="設定保存完了ダイアログ">
+
+ 図6-2-5 設定保存完了ダイアログ
+</div>
+
+### 6.2.2(任意)gBizConnect Portalで標準データ変換の設定
+
+　データ提供システムの法人標準データの形式に準拠している場合は不要です。<br>
+　法人標準データの形式に準拠していない場合は以下の設定を実施して下さい。<be>
+　また標準データ変換の詳細な説明は、[Node仕様書：2.4.標準データマッピング機能](https://github.com/gbizconnect/gbizconnect-node/blob/master/docs/gBizConnectNode.md)を参照してください。
+
+(1)[「gBizConnectに参加する」](https://portal.connect.gbiz.go.jp/use_flow)から「APIを公開する」を選択します。
+
+<div align="center">
+<img src="img/hyouzyun_data_set1.png" alt="gBizConnectに参加する画面" title="gBizConnectに参加する画面">
+
+ 図6-2-6 gBizConnectに参加する画面
+</div>
+
+(2)図6-2-7の画面から任意のシステムの「Node設定」を選択します。
+
+<div align="center">
+<img src="img/hyouzyun_data_set2.png" alt="システム一覧画面" title="システム一覧画面">
+
+ 図6-2-7 システム一覧画面
+</div>
+
+(3)図6-2-8のNode設定画面(APIマッピング)で標準データ変換①または標準データ変換②または標準データ変換③を選択します。
+
+<div align="center">
+<img src="img/hyouzyun_data_set3.png" alt="Node設定画面(APIマッピング)" title="Node設定画面(APIマッピング)">
+
+ 図6-2-8 Node設定画面(APIマッピング)
+</div>
+
+(4)図6-2-9の設定画面で必要な項目を入力し、「設定を保存する」を選択します。
+
+<div align="center">
+<img src="img/hyouzyun_data_set4.png" alt="Node設定画面(標準データ変換①)" title="Node設定画面(標準データ変換①)">
+
+ 図6-2-9 Node設定画面(標準データ変換①)
+</div>
+
+入力例について説明します。下記の通り、データ提供システムから取得できる法人データを法人標準データに変換したいとします。
+
+
+〇データ提供システムから取得できるデータ
+
+```
 {
     "corporate-number" : "1234567891011",
     "corporate-name" : "○○株式会社",
@@ -340,446 +844,536 @@ JSONデータ
     },
     "phonenumber" : "03-1234-5678"
 }
-```  
-
-(1) 変換前リクエストJSON: gBizConnectの標準法人データJSON
-```json
-{
-    "基本" : {
-        "内容" : {
-            "従業員数" : "600"
-        }
-    }
-}
-```  
-
-(2) 変換後リクエストJSON: gBizConnect Node導入システムのAPIへのリクエストのJSON  
-
-```json
-{
-    "employees" : {
-        "all" : "600"
-    }
-}
 ```
 
-(3) 変換前レスポンスJSON: gBizConnect Node導入システムのAPIからのレスポンスのJSON  
-```json
-{
-    "corporate-number" : "1234567891011",
-    "corporate-name" : "○○株式会社",
-    "employees" : {
-        "all" : "600",
-        "regular" : "400"
-	},
-	"phonenumber" : "03-1234-5678"
-}
-```  
+〇標準データ変換した結果
 
-(4) 変換後レスポンスJSON: gBizConnectの標準法人データJSON  
-```json
+```
 {
-    "基本" : {
-        "宛先" : {
-            "法人番号" : "1234567891011",
-            "法人名" : "○○株式会社"
+    "Basic" : {
+        "Destination" : {
+            "Corporate number" : "1234567891011",
+            "Corporate name" : "○○株式会社"
         },
-        "内容" : {
-            "従業員数" : "600",
-            "正社員数" : "400"
+        "Content" : {
+            "Employee number" : "600",
+            "Regular employee number" : "400"
         },
-        "連絡先" : {
-            "電話番号" : "03-1234-5678"
+        "Contact information" : {
+            "Phone number" : "03-1234-5678"
         }
     }
 }
 ```
 
-・ PATCHリクエスト後の法人データストアのJSONデータ
-```json
-{
-    "corporate-number" : "1234567891011",
-    "corporate-name" : "○○株式会社",
-    "employees" : {
-        "all" : "600",
-        "regular" : "400"
-    },
-    "phonenumber" : "03-1234-5678"
-}
-```  
+表6-2-2の通りに図6-2-9 Node設定画面(標準データ変換①)の各項目に入力します。
 
-#### 2.7.7.	個別同意の設定  
-(1)	gBizConnect Node設定ファイル  
-個別同意の設定を行う場合は、gBizConnect Portalからダウンロードした設定ファイルを変更する必要があります。
-gBizConnect Node設定ファイルの"openid_connect"に、以下の項目の値を設定してください。  
+<div align="center">
 
-|キー|値|
+表6-2-2　標準データ変換設定例
+
+</div>
+
+|標準法人データJSONキー|システムAPIレスポンスキー|
 |:-|:-|
-|no_consent_url|同意画面でユーザが同意しなかった場合にリダイレクトさせる導入システムのURL|
-|post_authorized_url|同意画面でユーザが同意した場合にリダイレクトさせる導入システムのURL|
-|redirect_uri|ホスト名とポート番号を実際の値に修正|
+|Basic.Destination.Corporate number|corporate-number|
+|Basic.Destination.Corporate name|corporate-name|
+|Basic.Content.Employee number|employees.all|
+|Basic.Content.Regular employee number|employees.regular|
+|Basic.Contact information.Phone number|phonenumber|
 
-```json
-"openid_connect":{
-    "no_consent_url" : "https://app.denshi.jp/no_consent",
-    "post_authorized_url" : "https://app.denshi.jp/post_authorized",
-    "redirect_uri" : "https://node.example.jp[:port]/v1/auth/redirect_uri"
-}
+<br>
+
+(5)図6-2-10の設定画面で必要な項目を入力し、「設定を保存する」を選択します。
+
+<div align="center">
+<img src="img/hyouzyun_data_set5.png" alt="Node設定画面(標準データ変換②)" title="Node設定画面(標準データ変換②)">
+
+ 図6-2-10 Node設定画面(標準データ変換②)
+</div>
+
+(6)図6-2-11の設定画面で必要な項目を入力し、「設定を保存する」を選択します。
+
+<div align="center">
+<img src="img/hyouzyun_data_set6.png" alt="Node設定画面(標準データ変換③)" title="Node設定画面(標準データ変換③)">
+
+ 図6-2-11 Node設定画面(標準データ変換③)
+</div>
+
+### 6.3.gBizConnect NodeのAPI仕様定義/公開の設定
+#### 6.3.1 Swaggerのネットワーク設定
+　gBizConnect NodeのAPI仕様定義を公開するため、API情報を編集する必要があります。
+
+(1)gBizConnect　PortalでAPI登録したAPI情報のAPI仕様URLに以下の値を設定する必要があります。<br>
+　 はじめに図6-4-1のメニュー画面から「API一覧」を選択します。
+
+〇設定する値
+
+```
+https://node.example.jp[:port]/swaggerui/
 ```
 
-(2) スコープ選択画面  
-$NODE_HOME/edge-module/nginx/html/scope.htmlの22行目、formタグのaction属性のホスト名とポート番号を実際の値に修正します。
+※「node.example.jp[:port]」を実際の値に修正してください。
+
+<div align="center">
+<img src="img/api_swagger_set1.png" alt="メニュー画面" title="メニュー画面">
+
+ 図6-3-1 メニュー画面
+</div>
+
+(2)図6-3-2のAPI一覧画面で編集したいAPI情報で、「編集」を選択します。
+
+<div align="center">
+<img src="img/api_swagger_set2.png" alt="API一覧画面" title="API一覧画面">
+
+ 図6-4-2 API一覧画面
+</div>
+
+(3)図6-3-3のAPI編集画面で、「API仕様URL」の値に(3)で決めた値を入力し、「編集内容を確認する」を選択します。
+
+<div align="center">
+<img src="img/api_swagger_set3.png" alt="API編集画面" title="API編集画面">
+
+ 図6-3-3 API編集画面
+</div>
+
+(4)図6-3-4のAPI編集確認画面で、「編集する」を選択し、図6-3-5のAPI編集完了画面が表示されます。
+
+<div align="center">
+<img src="img/api_swagger_set4.png" alt="API編集確認画面" title="API編集確認画面">
+
+ 図6-3-4 API編集確認画面
+</div>
+
+<div align="center">
+<img src="img/api_swagger_set5.png" alt="API編集完了画面" title="API編集完了画面">
+
+ 図6-3-5 API編集完了画面
+</div>
+
+
+#### 6.3.2 SwaggerのAPI仕様定義/公開の設定
+
+　gBizConnect NodeのAPI仕様をSwagger Editorで定義し、Swagger UIで公開するための設定を下記に示します。  
+
+<div align="center">
+<img src="img/swaggereditor.png">  
+
+図6-4-1　Swagger Editorの表示例
+</div>
+
+(1)Swagger Editor（`https://node.example.jp[:port]/swaggereditor/`）をブラウザで開いてください。  
+
+(2)Swagger EditorでAPI仕様を追記してください。  
+　API仕様の記載方法は、Swaggerのサイトを参照してください。  
+・Swaggerのサイト：https://swagger.io/docs/specification/2-0/basic-structure/  
+
+(3)Swagger Editorの【1】「File」で「Save as JSON」を選択し、ファイル(swagger.json)をローカルに保存し、同ファイルを以下のディレクトリに格納してください。  
+・任意の場所/swaggerui/  
+
+### 6.4.API利用申請の承認
+
+この項目は、データ要求者システムからAPI利用申請が実施された場合にする手順となっております。
+
+(1)図6-4-1のメニュー画面で「API利用承認」を選択します。
+
+<div align="center">
+<img src="img/api_syounin1.png" alt="メニュー画面" title="メニュー画面">
+
+ 図6-4-1 メニュー画面
+</div>
+
+(2)図6-4-2のAPI利用承認画面で承認したいAPI利用申請から、「承認」を選択します。
+
+<div align="center">
+<img src="img/api_syounin2.png" alt="API利用承認画面" title="API利用承認画面">
+
+ 図6-4-2 API利用承認画面
+</div>
+
+(3)図6-4-3のAPI利用申請承認画面で「承認する」を選択します。
+
+<div align="center">
+<img src="img/api_syounin3.png" alt="API利用申請承認画面" title="API利用申請承認画面">
+
+ 図6-4-3 API利用申請承認画面
+</div>
+
+(4)図6-4-4のAPI利用申請承認確認画面で「承認する」を選択し、図6-1-5のAPI利用申請承認完了画面が表示されます
+
+<div align="center">
+<img src="img/api_syounin4.png" alt="API利用申請承認確認画面" title="API利用申請承認確認画面">
+
+ 図6-4-4 API利用申請承認確認画面
+</div>
+
+
+<div align="center">
+<img src="img/api_syounin5.png" alt="API利用申請承認完了画面" title="API利用申請承認完了画面">
+
+ 図6-4-5 API利用申請承認完了画面
+</div>
+
+### 6.5.(任意)gBizConnectの都度同意の設定
+
+ 　この項目は都度同意が必要な場合の設定です。任意の設定のため、必要に応じて設定してください。
+
+### 6.5.1gBizConnectの都度同意の流れ
+
+　この項目はデータ要求者の説明と同様のため、[5.2.1gBizConnectの都度同意の流れ](#5.2.1gBizConnectの都度同意の流れ)をご参照ください。
+
+### 6.5.2データ提供者で必要な都度同意の事前設定
+
+ (1)図5-2-1のgBizConnectに参加する画面で「ノードのオプションを設定する。」を選択します。
+
+ <div align="center">
+ <img src="img/tudodoui_teikyo_set1.png" alt="gBizConnectに参加する画面" title="gBizConnectに参加する画面">
+
+  図5-2-1 gBizConnectに参加する画面
+ </div>
+
+ (4)図5-2-2のシステム一覧画面で、任意のシステムの「Node設定」を選択します。
+
+ <div align="center">
+ <img src="img/tudodoui_teikyo_set2.png" alt="システム一覧画面"システム一覧画面">
+
+  図5-2-2 システム一覧画面
+ </div>
+
+ (4)図5-2-3のNode設定画面(APIマッピング)で「都度同意」を選択します。
+
+ <div align="center">
+ <img src="img/tudodoui_teikyo_set3.png" alt="Node設定画面(APIマッピング)" title="Node設定画面(APIマッピング)">
+
+  図5-2-3 Node設定画面(APIマッピング)
+ </div>
+
+ (5)図5-2-4のNode設定画面(都度同意)で「データ提供範囲設定」の項目で提供するデータの範囲をチェックし、「設定を保存」を選択します。
+
+ <div align="center">
+ <img src="img/tudodoui_teikyo_set4.png" alt="Node設定画面(都度同意)" title="Node設定画面(都度同意)">
+
+  図5-2-4 Node設定画面(都度同意)
+ </div>
+
+ (5)図5-2-5のようなダイアログの「OK」を選択し、図5-2-6に表示が変われば設定完了となります。
+
+ <div align="center">
+ <img src="img/tudodoui_teikyo_set5.png" alt="設定保存確認ダイアログ" title="設定保存確認ダイアログ">
+
+  図5-2-5 設定保存確認ダイアログ
+ </div>
+
+ <div align="center">
+ <img src="img/tudodoui_teikyo_set6.png" alt="設定保存完了ダイアログ" title="設定保存完了ダイアログ">
+
+  図5-2-6 設定保存完了ダイアログ
+ </div>
+
+### 6.5.Node設定ファイルの取得、gBizConnect Nodeへ反映
+
+　データ要求者の設定と同様の手順のため、[「5.3.Node設定ファイルをgBizConnect Nodeへ反映」](#5.3.Node設定ファイルをgBizConnect-Nodeへ反映)を参照。
+
+## 7.補足事項
+
+### 7.1.gBizConnect NodeにCA証明書を認識させる方法
+
+　gBizConnect NodeでCA証明書を認識させる方法を下記に示す
+
+(1)自己CA証明書のファイル名を「trusted_ca_cert.crt」に変更し任意の場所に格納する。<br>
+
+(2)下記のコマンドを実行する。<br>
+　　
+〇コマンド例
 
 ```
-<form action="https://node.example.jp[:port]/v1/auth" method="GET" name="autogetform">
+sudo docker cp /opt/gbizconnect/ssl/trusted_ca_cert.crt node_edge-module_1:/etc/nginx/ssl/trusted_ca_cert.crt \
+&& sudo docker exec -it node_edge-module_1 /bin/sh -c 'echo "" >> \
+/etc/ssl/certs/ca-certificates.crt' \
+&& sudo docker exec -it node_edge-module_1 /bin/sh -c 'echo "# gBizConnectCA" >> \
+/etc/ssl/certs/ca-certificates.crt' \
+&& sudo docker exec -it node_edge-module_1 /bin/sh -c 'cat \
+/etc/nginx/ssl/trusted_ca_cert.crt >> /etc/ssl/certs/ca-certificates.crt'
 ```
 
-29行目、selectタグ(name:client_id)内optionタグのvalue属性に、gBizConnect Portalで利用申請が承認されたAPIを持つシステムのクライアントID(gBizConnect Node設定ファイルのauthorized_server_listに含まれるclient_id)を指定してください。以下のように記載を行ってください。複数記載可能です。  
+〇コマンド修正箇所
+  * /opt/gbizconnect/ssl/trusted_ca_cert.crt：(1)でファイルを格納したディレクトリ
 
-```
-<select name="client_id">
-<option value="yyyyyyyyyyyyy-yyyy-yyyy-yyyyyyyyyyyy">法人データストア(yyyyyyyyyyyyy-yyyy-yyyy-yyyyyyyyyyyy)</option>
-```
+(3)下記のコマンドを実行する。
 
-(3) リダイレクトURIについて  
-gBizConnect Portalでのシステム登録後、gBizConnect Portalの管理者がシステム登録の承認時に以下のリダイレクトURIを登録していることが前提になります。  
-「https://<システムのgBizConnect Nodeを導入したサーバのドメイン>[:port]/v1/auth/redirect_uri」
-
-#### 2.7.8. edge-module.confの設定
-gBizConnect Nodeを動作させるために必要な設定を $NODE_HOME/edge-module/nginx/conf.d/edge-module.conf に行います。  
-
-(1)	名前解決の設定   
-gBizConnect Nodeを導入したサーバの/etc/resolv.confに設定されている、nameserverのIPアドレスを、edge-module.conf のresolverディレクティブに設定します。(複数指定する場合はスペースで区切り記載してください。)  
-```
-# cat /etc/resolv.conf
-nameserver XXX.XXX.XXX.XXX
-nameserver YYY.YYY.YYY.YYY
-```
-[edge-module.conf]  
-```
-resolver XXX.XXX.XXX.XXX YYY.YYY.YYY.YYY ipv6=off;
+```　　
+sudo docker exec -it node_edge-module_1 nginx -s reload　
 ```
 
-(2)	証明書チェーンの階層の数の設定  
-本設定はgBizConnect Node起動後に、以下のような証明書関連のエラーが発生した場合に変更すると解決する場合があります。エラーが発生しない場合は変更の必要はありません。
+### 7.2.証明書チェーンの階層の数の設定  
+　本設定はgBizConnect Node起動後に、以下のような証明書関連のエラーが発生した場合に必要な設定となります。
+
+〇エラー
+
 ```
 upstream SSL certificate verify error: (20:unable to get local issuer certificate) while SSL handshaking to upstream
 ```
-edge-module.conf のproxy_ssl_verify_depthディレクティブは4箇所、lua_ssl_verify_depthディレクティブは１箇所記載されています。それらの値を増やしてください。  
 
-　[edge-module.conf記載例]
+(1)proxy_ssl_verify_depthの値、lua_ssl_verify_depthの値を設定したCAルート証明書の階層の数に変更する。
+
+〇proxy_ssl_verify_depth.confの値(proxy_ssl_verify_depth.conf：1行目)
+
 ```
 proxy_ssl_verify_depth        3;
-(中略)
+```
+
+〇lua-ssl-verify-depth.confの値(lua-ssl-verify-depth.conf：1行目)
+
+```
 lua_ssl_verify_depth          3;
 ```
+### 7.3.gBizConnect Nodeとデータ提供システム間でSSL通信を行うための設定
 
-#### 2.7.9.	JSON Server
-Swagger UIからAPI試行する際のサーバとしてJSON Serverを使用しています。   
-詳細はJSON Serverのサイトを参照してください。  
-JSON Serverのサイト：https://github.com/typicode/json-server  
+　提供側Nodeを導入したサーバからデータ提供システムへSSL通信を行う場合、提供側Nodeにデータ提供システムのCA（認証局）のルート証明書を取り込む必要がある。
 
-<テストデータ>  
-API仕様を公開するSwagger UIからAPIを試行された際にレスポンスするテストデータとして$NODE_HOME/jsonserver/db.jsonにサンプルデータが設定されています。テストデータを追加・変更する場合はdb.jsonを編集してください。  
+(1)gBizConnect Nodeに認識させたいデータ提供システムのCA（認証局）のルート証明書（PEM形式）を用意する。
 
-|サンプルデータのパス|API|
-|:-|:-|
-|/corporations|法人番号一覧取得|
-|/corporations-:corporateNum|法人データ取得|
-|/corporations-:corporateNum-notifications|証明書・通知書等番号一覧取得|
-|/corporations-:corporateNum-<br>notifications-:notificationNum|証明書・通知書等取得|
+(2) 「[7.1.gBizConnect Nodeに複数の証明書を認識させる設定](#7.1.gBizConnect-Nodeに複数の証明書を認識させる設定)」を参考に、gBizConnect NodeのCA（認証局）のルート証明書（PEM形式）に(1)で用意した証明書の情報を追加する。
 
-<注意事項>  
-Swagger UIから証明書・通知書等登録API（POST /corporations/{corporate-number}/notifications）を試行した場合サンプルデータではエラーとなります。  
+### 7.4 gBizConnect Nodeの流量制御設定
 
-サンプルデータ抜粋
+gBizConnect Nodeは、利用許可したシステムごとに過剰なリクエストの受付防止が可能な流量制御をすることができます。
+詳細な説明は[Node仕様書：2.8. 流量制御](https://github.com/gbizconnect/gbizconnect-node/blob/master/docs/gBizConnectNode.md)を参照してください。
+
+またgBizConnect Node流量制御はnginxの機能を利用しておりますので、NGINXの公式サイト合わせて参照してください。
+
+http://nginx.org/en/docs/http/ngx_http_limit_req_module.html
+https://www.nginx.com/blog/rate-limiting-nginx/
+
+#### 7.4.1.gBizConnect Nodeで指定したIPアドレスに流量制御の設定する方法。
+
+(1)rate-limit.http.confを設定する。
+
+〇rate-limit.http.confの記載例
+
 ```
-{
-  "corporations": [
-    "1234567891011","1234567891022","1234567891033"
-  ],
-  "corporations-1234567891011":
-    {
-      "基本": {
-        "宛先": {
-          "法人番号": "1234567891011",
-          "法人名": "○○株式会社",
-（中略）
-    }
-  ,
-  "corporations-1234567891011-notifications": [
-    "12345","12346","12347"
-  ],
-（中略）
-  "corporations-1234567891011-notifications-12345":
-    {
-      "宛先": {
-        "法人番号": "1234567891011",
-        "商号又は名称": "○○株式会社",
-（途中省略）
-    }
+geo $rule_XXX {
+    default 0;
+    YYY.YYY.YYY.YYY/Z 1;
 }
-```
-
-<ルート>  
-Swagger UIで試行するAPIのエンドポイントと、JSON Serverのテストデータのパスが異なる場合に、前者のパスを後者に振り替えることができます。  
-$NODE_HOME/jsonserver/routes.jsonにサンプルルートが設定されています。テストデータに新しいパスを追加する場合は対応するルートを設定してください。  
-
-サンプルルート
-```
-{
-  "/v1/corporations":"/corporations",
-  "/v1/corporations/:corporateNum":"/corporations-:corporateNum",
-  "/v1/corporations/:corporateNum/notifications":"/corporations-:corporateNum-notifications",
-  "/v1/corporations/:corporateNum/notifications/:notificationNum":"/corporations-:corporateNum-notifications-:notificationNum"
+map $rule_XXX $rule_XXX_key {
+    0 "";
+    1 $binary_remote_addr;
 }
+limit_req_zone $rule_delay_key zone="rule_XXX":10m rate=5r/s;
 ```
 
-* 左側（キー）に当てはまるURIが、右側（値）の内容に振り替えられます。  
-* コロン(:)から始まる文字列は、変数扱いとなり、左右で同じ内容が設定されます。  
+〇編集箇所
+  * "$rule_XXX","$rule_XXX_key"：「XXX」に任意の値を設定し、同じになるよう合わせる。
+  * "YYY.YYY.YYY.YYY/Z"︓制限したいIPアドレスを設定する。サブネットマスクを使用することが可能。複数項目記載可能。 
+  * "rate"：リクエストの間隔の最大値を設定できます。例の場合は1秒に5回を超えない程度(0.2秒以上の間隔)を設定。
 
-振替の例  
-Swagger UIで試行するAPIのエンドポイント
-`https://app.datastore.jp/jsonserver/v1/corporations/1234567890123/notifications/1`  
--> 振替後のJSON Serverのエンドポイント  
-`https://app.datastore.jp/jsonserver/corporations-1234567890123-notifications-1`
+(2)rate-limit.location.confを設定する。
 
-
-
-記載に関する詳細は、上記のJSON Serverのサイトの以下の項を参照してください。  
-* Add custom routes  
-
-#### 2.7.10.	td-agent.conf（参考情報）
-gBizConnect NodeのログをgBizConnect Portalに転送するためにtd-agentを使用しています。  
-td-agent.confにはログの転送先となるgBizConnect Portalのtd-agentのhost, portが設定されています。
-
- [td-agent.conf記載例]  
+〇rate-limit.location.confの記載例。
 
 ```
-(中略)
-<match error.log>
-  type forward
-  <server>
-    host xxx.xxx.xxx.xxx
-    port 24233
-(中略)
+limit_req zone="rule_XXX_key" burst=10 "nodelay";
 ```
 
-### 2.8.Docker Composeコマンドを使用したgBizConnect Nodeの起動  
-#### 2.8.1. docker-compose.ymlの修正  
-Dockerコンテナを起動する前に、docker-compose.ymlを修正します。  
-swaggeruiの項目のAPI_URLに含まれるURLのホスト名とポート番号を実際のホスト名とポート番号に修正します。  
+〇編集箇所
+  * "limit_reqの末尾"："nodelay"を記載すると、制限を超えたリクエストはドロップする。何も記載しないと遅延します。
+  * "burst"：rateで設定した制限時間内に来たリクエストの最大保持量を設定できます。例の場合は、0.2秒間隔を待たずに来たリクエストを保持できる最大量となります。
 
-```
-swaggerui:
-environment:
-		-API_URL=https://node.example.jp[:port]/swaggerui/swagger.json
-```  
-edge-moduleとconfig-nginx-phpの公開ポートを変更する場合は、portsの左側の値を変更してください。
+### 7.5 gBizConnect Nodeのメタデータ付与設定
 
-```
-edge-module:
-    (中略)
-    ports:
-      - 443:443
-   (中略)
-  config-nginx-php:
-    (中略)
-    ports:
-      - 8080:8080
-```
-Docker起動時にポートが重複する場合は、各項目のポートを見直してください。  
+gBizConnectではシステム間連携で取得した値にメタデータを付与することができます。
+付与することのできるメタデータの詳細な説明は[Node仕様書：5.2. メタデータ](https://github.com/gbizconnect/gbizconnect-node/blob/master/docs/gBizConnectNode.md)を参照してください。
 
-#### 2.8.2.	Dockerコンテナの起動  
-　gBizConnect Nodeを起動する場合は、以下のコマンドを実行しDockerコンテナを起動します。
+(1)メニュー画面から「Node設定の更新」を選択します。
 
-```
-cd $NODE_HOME
-docker-compose up -d
-```
-
-#### 2.8.3.	Dockerコンテナの起動確認  
-gBizConnect Nodeの起動を確認する場合は、以下のコマンドを実行しDockerコンテナ(config-php-script config-nginx-php swaggereditor swaggerui jsonserver edge-module td-agent)の起動を確認します。
-```
-cd $NODE_HOME
-docker-compose ps
-```
-
-#### 2.8.4.	Dockerコンテナの停止
-gBizConnect Nodeを停止する場合は、以下のコマンドを実行しDockerコンテナを停止します。  
-```
-cd $NODE_HOME
-docker-compose stop
-```
-
-### 2.9.	Dockerコマンドを使用したgBizConnect Nodeの起動  
-#### 2.9.1.	Dockerネットワークの作成
-gBizConnect Nodeで使用するDockerネットワークを作成するために、以下のコマンドを実行します。
-なお、本手順はgBizConnect Nodeの導入時に1回だけ実施します。
-```
-sudo docker network create edge-network
-```
-
-docker networkの詳細は以下のURLを参照してください。  
-https://docs.docker.com/engine/reference/commandline/network/
-
-
-#### 2.9.2.	Dockerコンテナの起動（1回目）  
-gBizConnect Nodeを起動（1回目）する場合は、以下のコマンドを実行しDockerコンテナを起動します。  
-swaggeruiの項目のAPI_URLに含まれるURLのホスト名とポート番号は実際のホスト名とポート番号に修正してください。
-
-```
-NODE_HOME=/opt/gbizconnect/gbizconnect-node-0.0.1
-
-sudo docker run -d --network edge-network --name config-php-script \
-    -v $NODE_HOME/config-php-script/html/setting.php:/var/www/html/setting.php \
-    -v $NODE_HOME/config-php-script/log/php_error.log:/var/www/html/log/php_error.log \
-    -v $NODE_HOME/permanent/config.json:/var/www/html/resources/config.json \
-    -w /var/www/myapp \
-    php:7.4-rc-fpm-alpine3.10
-
-sudo docker run -d --network edge-network --name config-nginx-php -p 8080:8080 \
-    -v $NODE_HOME/config-nginx-php/nginx.conf:/etc/nginx/nginx.conf \
-    -v $NODE_HOME/config-nginx-php/conf.d/config.conf:/etc/nginx/conf.d/config.conf \
-    nginx:1.17.6
-
-sudo docker run -d --network edge-network --name swaggereditor \
-    -v $NODE_HOME/swaggereditor/index.html:/usr/share/nginx/html/index.html \
-    swaggerapi/swagger-editor:v3.7.0
-
-sudo docker run -d --network edge-network --name swaggerui \
-    -v $NODE_HOME/swaggerui/swagger.json:/usr/share/nginx/html/swagger.json \
-    -e API_URL=https://node.example.jp[:port]/swaggerui/swagger.json \
-    swaggerapi/swagger-ui:v3.24.3
-
-sudo docker run -d --network edge-network --name jsonserver \
-    -v $NODE_HOME/jsonserver/db.json:/data/db.json \
-    -v $NODE_HOME/jsonserver/routes.json:/data/routes.json \
-    clue/json-server:latest -r routes.json
-
-sudo docker run -d --network edge-network --name edge-module -p 443:443 \
-    -v $NODE_HOME/edge-module/nginx/nginx.conf:/etc/nginx/nginx.conf \
-    -v $NODE_HOME/edge-module/nginx/conf.d/edge-module.conf:/etc/nginx/conf.d/edge-module.conf \
-    -v $NODE_HOME/edge-module/nginx/js/nginx.js:/etc/nginx/js/nginx.js \
-    -v $NODE_HOME/permanent/config.json:/etc/nginx/resources/config.json \
-    -v $NODE_HOME/edge-module/nginx/ssl/localhost.pem:/etc/nginx/ssl/localhost.pem \
-    -v $NODE_HOME/edge-module/nginx/ssl/localhost.key:/etc/nginx/ssl/localhost.key \
-    -v $NODE_HOME/edge-module/nginx/ssl/dh2048.pem:/etc/nginx/ssl/dh2048.pem \
-    -v $NODE_HOME/edge-module/log:/var/log/nginx/ \
-    -v $NODE_HOME/edge-module/nginx/ssl/trusted_ca_cert.crt:/etc/nginx/ssl/trusted_ca_cert.crt \
-    -v $NODE_HOME/edge-module/nginx/html:/usr/share/nginx/html \
-    -v $NODE_HOME/edge-module/nginx/.htpasswd:/etc/nginx/.htpasswd \
-    gbizconnect/gbizconnect-node-nginx:v0.0.1
-
-sudo docker run -d --network edge-network --name td-agent -p 24233:24233/tcp \
-    -v $NODE_HOME/edge-module/log:/var/log/nginx \
-    -v $NODE_HOME/td-agent/edge/td-agent.conf:/etc/td-agent/td-agent.conf \
-    -v $NODE_HOME/config-php-script/log:/var/www/html/log \
-    -v $NODE_HOME/td-agent/setting:/var/log/setting \
-    -v $NODE_HOME/td-agent/tmp:/var/log/td-agent/tmp \
-    --tmpfs /tmp --tmpfs /run -v /sys/fs/cgroup:/sys/fs/cgroup:ro --stop-signal SIGRTMIN+3 \
-    gbizconnect/gbizconnect-node-td-agent:v0.0.1 /sbin/init
-```  
-
-　docker runの詳細を確認する場合は以下のURLを参照してください。  
-　https://docs.docker.com/engine/reference/commandline/run/  
-
-#### 2.9.3.	Dockerコンテナの起動（2回目以降）
-gBizConnect Nodeを起動（2回目以降）する場合は、以下のコマンドを実行しDockerコンテナを起動します。  
-
-```
-sudo docker start config-php-script config-nginx-php swaggereditor swaggerui jsonserver edge-module td-agent
-```
-
-#### 2.9.4.	Dockerコンテナの起動確認  
-gBizConnect Nodeの起動を確認する場合は、以下のコマンドを実行しDockerコンテナ(config-php-script config-nginx-php swaggereditor swaggerui jsonserver edge-module td-agent)の起動を確認します。  
-```
-sudo docker ps
-```
-
-#### 2.9.5.	Dockerコンテナの停止
-gBizConnect Nodeを停止する場合は、以下のコマンドを実行しDockerコンテナを停止します。  
-```
-sudo docker stop config-php-script config-nginx-php swaggereditor swaggerui jsonserver edge-module td-agent
-```
-
-### 2.10. Dockerコンテナ起動後に必要なgBizConnect Nodeの設定  
-#### 2.10.1.	gBizConnect Node設定ファイルの反映  
-2.7.5項～2.7.7項にて設定済みのgBizConnect Node設定ファイルをgBizConnect Node設定画面から反映させます。  
-
-
-<画面>  
- <div align="center">
- <img src="img/setting1.png">
-
- </div>
-
-<設定方法>  
-
-①	gBizConnect Node設定画面（`http://node.example.jp:8080/setting.php`） をブラウザで開きます。  
-②	【1】「参照...」からgBizConnect Node設定ファイルを選択します。  
-③	【2】「保存」ボタンを押下すると、参照したファイルの全ての内容がgBizConnect Nodeに反映されます。  
-
-
-#### 3.	API仕様定義／公開
-
-gBizConnect Node API以外に導入システム独自のAPI仕様をSwagger Editorで定義し、Swagger UIで公開できます。独自APIを公開する場合に本手順を実施してください。  
-
-<画面>  
 <div align="center">
-<img src="img/swaggereditor.png">  
+<img src="img/metadata_fuyo1.png" alt="メニュー画面" title="メニュー画面">
+
+ 図7-5-1 メニュー画面
 </div>
 
-①	Swagger Editor（`https://node.example.jp[:port]/swaggereditor/`）をブラウザで開いてください。  
-②	Swagger Editorで独自API仕様を追記してください。  
-　API仕様の記載方法は、Swaggerのサイトを参照してください。  
-・Swaggerのサイト：https://swagger.io/docs/specification/2-0/basic-structure/  
-③	Swagger Editorの【1】「File」で「Save as JSON」を選択し、ファイル(swagger.json)をローカルに保存し、同ファイルを以下のディレクトリに格納してください。  
-$NODE_HOME/swaggerui/  
-④	APIマッピングの設定で、独自APIのマッピングを追加してください。  
-「2.7.5 APIマッピング」参照  
-⑤	gBizConnect Node設定ファイルの反映を実施してください。  
-「2.10.1 gBizConnect Node設定ファイルの反映」参照  
-⑥	独自APIをgBizConnect Portalに登録してください。  
-詳細は「gBizConnect Portal 利用者向けマニュアル」を参照してください。  
+(2)図7-5-2のシステム一覧画面で設定したいシステムから、「Node設定」を選択します。
 
-## 4.	母体システムの改修
-### 4.1.	法人データ連携基盤を活用した連携のイメージ
-法人データ連携基盤を活用したイメージは下図の通りです。
 <div align="center">
-<img src="img/datarenkei.png">
+<img src="img/metadata_fuyo2.png" alt="システム一覧画面" title="システム一覧画面">
 
+ 図7-5-2 システム一覧画面
 </div>
 
-### 4.2. 電子申請システム・法人データストアにて必要となる実装機能例
-<div align="center">
-<img src="img/denshihoujin.png">
+(3)図7-5-3のNode設定画面(APIマッピング)で、「Node内部」を選択します。
 
+<div align="center">
+<img src="img/metadata_fuyo3.png" alt="Node設定画面(APIマッピング)" title="Node設定画面(APIマッピング)">
+
+ 図7-5-3 Node設定画面(APIマッピング)
 </div>
 
-<br>
-<br>
-個別同意フロー
+(4)図7-5-4のNode設定画面(Node内部)の下部にある、メタデータ付与情報設定を「true」にする。その後「設定を保存する」を選択する。
+
 <div align="center">
-<img src="img/jizendoui.png">
+<img src="img/metadata_fuyo4.png" alt="Node設定画面(Node内部)" title="Node設定画面(Node内部)">
 
-
-
+ 図7-5-4 Node設定画面(Node内部)
 </div>
 
-<br>
-<br>
-個別同意フロー（事前同意フローとの差異を黄色吹出に記載）  
+(5)[「5.3.Node設定ファイルをgBizConnect Nodeへ反映」](#5.3.Node設定ファイルをgBizConnect-Nodeへ反映)を参考にNode設定ファイルを更新する。
+
+### 7.6 リバースプロキシ利用環境でのgBizConnect Nodeの導入時の注意点
+
+　リバースプロキシを利用している環境の場合、以下の対策を実施する必要があります。 <br>
+
+〇リバースプロキシ利用環境で必要な対策
+
+```
+・リクエストを受け取るリバースプロキシでは、サニタイズ処理を実装すること。
+・リバースプロキシとサーバ間の通信は盗聴、改変、リプレイ攻撃から保護すること。 
+```
+
+### 7.7 gBizConnect Nodeとデータ提供システム間の認証情報の設定
+
+gBizConnect Nodeからデータ提供システムのデータを取得する際の認証情報を設定することができます。
+設定することのできる認証情報の詳細な説明は[Node仕様書：5.3. gBizConnect Nodeとシステム間の認証機能](https://github.com/gbizconnect/gbizconnect-node/blob/master/docs/gBizConnectNode.md)を参照してください。
+
+(1)メニュー画面から「Node設定の更新」を選択します。
+
 <div align="center">
-<img src="img/kobetsudoui.png">
+<img src="img/ninsyo_set1.png" alt="メニュー画面" title="メニュー画面">
 
-
- (gBizConnect Nodeの仕様については、「[gBizConnect Node仕様書](gBizConnectNode.md)」を参照してください。)  
+ 図7-7-1 メニュー画面
 </div>
 
-### 4.3. 環境構成例
-環境構成のイメージについては、<a href="img/kankyo_kousei_image.png">gBizConnect Nodeの環境構成（例）</a>を参照してください。
+(2)図7-7-2のシステム一覧画面で設定したいシステムから、「Node設定」を選択します。
 
+<div align="center">
+<img src="img/ninsyo_set2.png" alt="システム一覧画面" title="システム一覧画面">
 
+ 図7-7-2 システム一覧画面
+</div>
 
-以上
+(3)図7-7-3のNode設定画面(APIマッピング)で、「Node内部」を選択します。
+
+<div align="center">
+<img src="img/ninsyo_set3.png" alt="Node設定画面(APIマッピング)" title="Node設定画面(APIマッピング)">
+
+ 図7-7-3 Node設定画面(APIマッピング)
+</div>
+
+(4)図7-7-4のNode設定画面(Node内部)の上部にある、認証情報を下のダイアログから、設定したい認証情報の種類を選択する。<br>
+　　その後「Basic認証」の場合、(5)を実施。「Bearerトークン認証」の場合、(6)を実施。「APIキー認証」、の場合(7)を実施。
+
+<div align="center">
+<img src="img/ninsyo_set4.png" alt="Node設定画面(Node内部)" title="Node設定画面(Node内部)">
+
+ 図7-7-4 Node設定画面(Node内部)
+</div>
+
+(5)【Basic認証の場合】図7-7-5のNode設定画面(Node内部)でIDとPWを入力する。<br>
+　　その後(9)を実施する。
+
+<div align="center">
+<img src="img/ninsyo_set5.png" alt="Node設定画面(【Basic認証の場合】Node内部)" title="Node設定画面(【Basic認証の場合】Node内部)">
+
+ 図7-7-5 Node設定画面(【Basic認証の場合】Node内部)
+</div>
+
+(6)【Bearerトークン認証の場合】図7-7-6のNode設定画面(Node内部)でBearerトークンを入力する。<br>
+　　その後(9)を実施する。
+
+<div align="center">
+<img src="img/ninsyo_set6.png" alt="Node設定画面(【Bearerトークン認証の場合】Node内部)" title="Node設定画面(【Bearerトークン認証の場合】Node内部)">
+
+ 図7-7-6 Node設定画面(【Bearerトークン認証の場合】Node内部)
+</div>
+
+(7)【APIキー認証の場合】図7-7-7のNode設定画面(Node内部)でAPIキーを入力する。<br>
+
+<div align="center">
+<img src="img/ninsyo_set7.png" alt="Node設定画面(【APIキー認証の場合】Node内部)" title="Node設定画面(【APIキー認証の場合】Node内部)">
+
+ 図7-7-7 Node設定画面(【APIキー認証の場合】Node内部)
+</div>
+
+(8)【APIキー認証の場合】独自ヘッダを用いたAPIキー認証を使用する場合、gBizConnect Nodeの「api.header.conf」に以下の設定をして下さい。
+
+〇記載例 (独自ヘッダを使用する場合)
+
+・変更対象ファイル
+
+```
+$NODE_HOME/node/edge-module/nginx/conf.d/api.header.conf
+```
+
+※$NODE_HOMEはgBizConnect Nodeを導入したディレクトリ。<br>
+
+・編集箇所
+
+```
+proxy_set_header X-API-ORIGINAL-KEY $js_call_system_api_api_key;
+```
+
+※X-API-ORIGINAL-KEYを独⾃ヘッダ名に変更してください。
+
+その後(9)を実施する。
+
+(9)[「5.3.Node設定ファイルをgBizConnect Nodeへ反映」](#5.3.Node設定ファイルをgBizConnect-Nodeへ反映)を参考にNode設定ファイルを更新する。
+
+### 7.8.事前同意によるシステム間連携のリクエストパターン
+
+本項目は事前同意によるシステム間連携の際に使用するリクエストのパターンについて説明します。
+
+〇データ提供者Nodeのドメインが変更された場合
+
+データ提供者Nodeのドメインが変更された場合でも、正しいドメインにアクセスできるようにクライアントIDからドメインを取得する方法です
+
+詳細は[Node仕様書：5.4. データ提供システムNodeの名前解決機能](https://github.com/gbizconnect/gbizconnect-node/blob/master/docs/gBizConnectNode.md)を参照してください。
+
+```
+curl -u UserID:PassWord -X POST \
+'https://node.youkyu.example.jp/v1/reception_jizen' \
+-H "accept: application/json" \
+--data-urlencode "client_id=teikyou_client_id" \
+--data-urlencode "call_api=/v1/example" \
+--data-urlencode "method=GET" \
+--data-urlencode "header=Accept: application/json" \
+--data-urlencode "header=Content-Type: application/json" 
+```
+
+〇事前同意でシステム間連携する際、取得する法人データ範囲(スコープ)を絞り込みたい場合。
+
+スコープの詳細は[Node仕様書：3.2. gBizConnectのスコープ ](https://github.com/gbizconnect/gbizconnect-node/blob/master/docs/gBizConnectNode.md)を参照してください。
+
+```
+curl -u UserID:PassWord -X POST \
+'https://node.youkyu.example.jp/v1/reception_jizen' \
+-H "accept: application/json" \
+--data-urlencode "call_api=https://node.teikyou.example.jp/v1/example" \
+--data-urlencode "method=GET" \
+--data-urlencode "scope=basic application" \
+--data-urlencode "header=Accept: application/json" \
+--data-urlencode "header=Content-Type: application/json" 
+```
+
+〇アクセスするAPIがGET以外のPATCH、POST、PUT(例はPOSTのみ)の場合。
+
+```
+curl -u UserID:PassWord -X POST \
+'https://node.youkyu.example.jp/v1/reception_jizen' \
+-H "accept: application/json" \
+--data-urlencode "call_api=https://node.teikyou.example.jp/v1/example" \
+--data-urlencode "method=POST" \
+--data-urlencode "header=Accept: application/json" \
+--data-urlencode "header=Content-Type: application/json"  \
+--data-urlencode  'body={"Basic":{"Destination":{"Corporate number":"1234567891011"}}}'
+```
+
+〇上記コマンド例の修正箇所
+ * UserID：installシェルで登録したユーザ名
+ * PassWord：installシェルで登録したパスワード
+ * https://node.youkyu.example.jp ：ノードを導入したホストのドメイン
+ * https://node.teikyou.example.jp ：API利用申請したNodeのホストのドメイン
+ * /v1/example ：API利用申請したAPI
+
+### 8.FAQ
+
+FAQに関しては「[gBizConnect FAQ](gBizConnectNode_faq.docx)」を参照してください。
