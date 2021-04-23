@@ -83,3 +83,7 @@ https://github.com/ilagnev/docker-alpine-nginx-lua
 
  ## ライセンス  
  本ソフトウェアは、[MITライセンス](LICENSE)の元提供されています。
+
+ ## 使用しているソフトウェアについて
+使用しているソフトウェアのライセンスについては以下のドキュメントを参照してください。
+* [included-licenses](docs/included-licenses.md)
