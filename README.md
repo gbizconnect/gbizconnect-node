@@ -86,4 +86,4 @@ https://github.com/ilagnev/docker-alpine-nginx-lua
 
  ## 使用しているソフトウェアについて
 使用しているソフトウェアのライセンスについては以下のドキュメントを参照してください。
-* [included-licenses](docs/included_licenses.md)
+* [included_licenses](docs/included_licenses.md)
