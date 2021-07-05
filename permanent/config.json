@@ -1028,6 +1028,12 @@
 			}
 		]
 	},
+	"scope_mappings" : [
+		{
+			"scope" : "basic",
+			"data_item" : "Basic"
+		}
+	],
 	"log_nginx_variables":[
 		{
 			"log_nginx_variable":"content_type",
