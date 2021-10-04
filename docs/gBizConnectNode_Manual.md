@@ -285,7 +285,7 @@ curl https://localhost/communication/status
  図4-1-2 アカウント登録申請画面
 </div>
 
-(3)図4-1-3の画面で「登録する」を選択し、図4-1-4のようなアカウント登録申請完了画面が表示されます。
+(3)図4-1-3の画面で「申請する」を選択し、図4-1-4のようなアカウント登録申請完了画面が表示されます。
 
 <div align="center">
 <img src="img/account_set3.png" alt="アカウント登録申請確認画面" title="アカウント登録申請確認画面">
@@ -299,7 +299,7 @@ curl https://localhost/communication/status
  図4-1-4 アカウント登録申請完了画面
 </div>
 
-(4)アカウント登録承認後、図4-1-4のようなメールが届くことを確認してください。
+(4)アカウント登録承認後、図4-1-5のようなメールが届くことを確認してください。
 
 <div align="center">
 <img src="img/account_set5.png" alt="アカウント登録承認後のメール" title="アカウント登録承認後のメール">
@@ -929,7 +929,7 @@ https://node.example.jp[:port]/swaggerui/
 <div align="center">
 <img src="img/api_swagger_set2.png" alt="API一覧画面" title="API一覧画面">
 
- 図6-4-2 API一覧画面
+ 図6-3-2 API一覧画面
 </div>
 
 (3)図6-3-3のAPI編集画面で、「API仕様URL」の値に(3)で決めた値を入力し、「編集内容を確認する」を選択します。
