@@ -34,7 +34,7 @@
 
 ### 1.3.用語の解説
 
-　用語の定義については、「[gBizConnect Node仕様書：1.1. 用語説明](https://github.com/gbizconnect/gbizconnect-node/blob/master/docs/gBizConnectNode.md)」を参照してください。
+　用語の定義については、「[gBizConnect Node仕様書：1.1. 用語説明](https://github.com/gbizconnect/gbizconnect-node/blob/master/docs/gBizConnectNode.md#11-用語説明)」を参照してください。
 
 ### 1.4.推奨環境
 
@@ -603,7 +603,7 @@ curl -u UserID:PassWord -X POST \
 ### 5.5.都度同意によるシステム間連携
 
 この項目は都度同意によるシステム間連携する場合の手順となります。事前同意によるシステム間連携は「[5.4.事前同意によるシステム間連携](#54事前同意によるシステム間連携)」を参照してください。
-また下記の手順で記載するgBizConnect NodeのAPIの詳細は「[gBizConnect Node API仕様](https://github.com/gbizconnect/gbizconnect-node/blob/master/docs/gBizConnectNode.md#22-api一覧)」を合わせてご参照ください。
+また下記の手順で記載するgBizConnect NodeのAPIの詳細は「[Node仕様書：2.2. API一覧](https://github.com/gbizconnect/gbizconnect-node/blob/master/docs/gBizConnectNode.md#22-api一覧)」を合わせてご参照ください。
 
 (1)データ要求者システムからデータ提供者Nodeの下記のパラメータを指定しAPIを呼び出してください。
 
@@ -655,7 +655,7 @@ youkyu_nonce：リダイレクトで取得したパラメータ(nonce)
 
 # データ提供者の設定
 
-本設定は、データ提供者の設定です。データ要求者の設定は「[5.データ要求者 gBizConnect Nodeのシステム間連携の設定](#5データ要求者gBizConnect-Nodeのシステム間連携の設定)」を参照してください。
+本設定は、データ提供者の設定です。データ要求者の設定は「[5.データ要求者 gBizConnect Nodeのシステム間連携の設定](#5データ要求者-gBizConnect-Nodeのシステム間連携の設定)」を参照してください。
 
 ## 6.データ提供者 gBizConnect Nodeのシステム間連携の設定
 ### 6.1.gBizConnect PortalでAPI登録
@@ -796,7 +796,7 @@ NodeAPIエンドポイントパス抽出正規表現：/v1/corporations/([0-9]+)
 
 ### 6.2.2gBizConnect Portalでデータ提供範囲の設定
 
- (1)図6-2-6の「[gBizConnectに参加する](https://portal.connect.gbiz.go.jp/menu_node)」画面で「gBizConnect Nodeのオプションを設定する。」を選択します。
+ (1)図6-2-6の「[gBizConnectに参加する](https://portal.connect.gbiz.go.jp/menu_node)」画面で「gBizConnect Nodeのオプションを設定する」を選択します。
 
  <div align="center">
  <img src="img/tudodoui_teikyo_set1.png" alt="gBizConnectに参加する画面" title="gBizConnectに参加する画面">
@@ -838,7 +838,7 @@ NodeAPIエンドポイントパス抽出正規表現：/v1/corporations/([0-9]+)
 
 　データ提供システムの法人標準データの形式に準拠している場合は不要です。<br>
 　法人標準データの形式に準拠していない場合は以下の設定を実施してください。<br>
-　また標準データ変換の詳細な説明は、「[Node仕様書：2.4.標準データマッピング機能](https://github.com/gbizconnect/gbizconnect-node/blob/master/docs/gBizConnectNode.md)」を参照してください。
+　また標準データ変換の詳細な説明は、「[Node仕様書：2.4.標準データマッピング機能](https://github.com/gbizconnect/gbizconnect-node/blob/master/docs/gBizConnectNode.md#24標準データマッピング機能)」を参照してください。
 
 (1)「[gBizConnectに参加する](https://portal.connect.gbiz.go.jp/menu_node)」から「APIを公開する」を選択します。
 
@@ -1128,12 +1128,12 @@ lua_ssl_verify_depth          3;
 
 (1)gBizConnect Nodeに認識させたいデータ提供システムのCA（認証局）のルート証明書（PEM形式）を用意します。
 
-(2) 「[7.1.gBizConnect Nodeに複数の証明書を認識させる設定](#71gBizConnect-Nodeに複数の証明書を認識させる設定)」を参考に、gBizConnect NodeのCA（認証局）のルート証明書（PEM形式）に(1)で用意した証明書の情報を追加します。
+(2) 「[7.1.gBizConnect NodeにCA証明書を認識させる方法](#71gBizConnect-NodeにCA証明書を認識させる方法)」を参考に、gBizConnect NodeのCA（認証局）のルート証明書（PEM形式）に(1)で用意した証明書の情報を追加します。
 
 ### 7.4 gBizConnect Nodeの流量制御設定
 
 gBizConnect Nodeは、利用許可したシステムごとに過剰なリクエストの受付防止が可能な流量制御をすることができます。
-詳細な説明は「[Node仕様書：2.8. 流量制御](https://github.com/gbizconnect/gbizconnect-node/blob/master/docs/gBizConnectNode.md)」を参照してください。
+詳細な説明は「[Node仕様書：2.8. 流量制御](https://github.com/gbizconnect/gbizconnect-node/blob/master/docs/gBizConnectNode.md#28-流量制御)」を参照してください。
 
 またgBizConnect Node流量制御はnginxの機能を利用しておりますので、NGINXの公式サイト合わせて参照してください。
 
@@ -1178,7 +1178,7 @@ limit_req zone="rule_XXX_key" burst=10 "nodelay";
 ### 7.5 gBizConnect Nodeのメタデータ付与設定
 
 gBizConnectではシステム間連携で取得した値にメタデータを付与することができます。
-付与することのできるメタデータの詳細な説明は「[Node仕様書：5.2. メタデータ](https://github.com/gbizconnect/gbizconnect-node/blob/master/docs/gBizConnectNode.md)」を参照してください。
+付与することのできるメタデータの詳細な説明は「[Node仕様書：5.2. メタデータ](https://github.com/gbizconnect/gbizconnect-node/blob/master/docs/gBizConnectNode.md#52-メタデータ)」を参照してください。
 
 (1)メニュー画面から「Node設定の更新」を選択します。
 
@@ -1220,7 +1220,7 @@ gBizConnectではシステム間連携で取得した値にメタデータを付
 ### 7.7 gBizConnect Nodeとデータ提供システム間の認証情報の設定
 
 gBizConnect Nodeからデータ提供システムのデータを取得する際の認証情報を設定することができます。
-設定することのできる認証情報の詳細な説明は「[Node仕様書：5.3. gBizConnect Nodeとシステム間の認証機能](https://github.com/gbizconnect/gbizconnect-node/blob/master/docs/gBizConnectNode.md)」を参照してください。
+設定することのできる認証情報の詳細な説明は「[Node仕様書：5.3. gBizConnect Nodeとシステム間の認証機能](https://github.com/gbizconnect/gbizconnect-node/blob/master/docs/gBizConnectNode.md#53-gbizconnect-nodeとシステム間の認証機能)」を参照してください。
 
 (1)メニュー画面から「Node設定の更新」を選択します。
 
@@ -1305,7 +1305,7 @@ proxy_set_header X-API-ORIGINAL-KEY $js_call_system_api_api_key;
 
 データ提供者Nodeのドメインが変更された場合でも、正しいドメインにアクセスできるようにクライアントIDからドメインを取得する方法です。
 
-詳細は「[Node仕様書：5.4. データ提供システムNodeの名前解決機能](https://github.com/gbizconnect/gbizconnect-node/blob/master/docs/gBizConnectNode.md)」を参照してください。
+詳細は「[Node仕様書：5.4. データ提供システムNodeの名前解決機能](https://github.com/gbizconnect/gbizconnect-node/blob/master/docs/gBizConnectNode.md#54-データ提供システムnodeの名前解決機能)」を参照してください。
 
 ```
 curl -u UserID:PassWord -X POST \
@@ -1320,7 +1320,7 @@ curl -u UserID:PassWord -X POST \
 
 〇事前同意でシステム間連携する際、取得する法人データ範囲(スコープ)を絞り込みたい場合
 
-スコープの詳細は「[Node仕様書：3.2. gBizConnectのスコープ ](https://github.com/gbizconnect/gbizconnect-node/blob/master/docs/gBizConnectNode.md)」を参照してください。
+スコープの詳細は「[Node仕様書：3.2. gBizConnectのスコープ ](https://github.com/gbizconnect/gbizconnect-node/blob/master/docs/gBizConnectNode.md#32-gbizconnectのスコープ)」を参照してください。
 
 ```
 curl -u UserID:PassWord -X POST \
