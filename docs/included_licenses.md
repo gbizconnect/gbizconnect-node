@@ -73,6 +73,7 @@ MIT Licenseのソフトウェアを含みます。
 * Copyright (C) 2015 typicode
 * Copyright (C) 2010-2012  Mark Pulford \<mark@kyne.com.au>
 * Copyright (C) 2005-2021 Mike Pall.
+* Copyright (C) 2014-2019 Polygon Planet
 
 本ライセンスは下記の通りです。  
 https://opensource.org/licenses/MIT
