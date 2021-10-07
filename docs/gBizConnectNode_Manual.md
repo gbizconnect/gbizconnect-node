@@ -266,8 +266,7 @@ curl https://localhost/communication/status
 
 ### 4.1.gBizConnect Portalでアカウントの作成
 
-※2021年9月30日現在、アカウント登録機能の利用を制限しております。アカウント登録されたい方は「[こちら](https://portal.connect.gbiz.go.jp/inquiry/index.html)」からお問い合わせください。
-制限撤廃時にはPortal上でお知らせいたします。
+※通常はアカウント登録時にアカウント申請フォームをご利用して頂く流れとなりますが、現時点では同フォームの利用を制限しております。アカウント登録をご希望の方はお手数ですが、メールでの「[お問い合わせメール](https://portal.connect.gbiz.go.jp/inquiry/index.html)」よりご連絡ください。
 
 (1)「[gBizConnectに参加する](https://portal.connect.gbiz.go.jp/menu_node)」から、「アカウント登録」を選択します。
 
