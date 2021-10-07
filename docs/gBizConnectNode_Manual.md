@@ -259,7 +259,7 @@ curl https://localhost/communication/status
 }
 ```
 
-※疎通コマンドが結果の通りにならない場合は、「[gBizConnect FAQ](./gBizConnect_faq.docx)」を参照してください。<br>
+※疎通コマンドが結果の通りにならない場合は、「[gBizConnect FAQ](./gBizConnect_faq.pdf)」を参照してください。<br>
 ※上記のコマンド例はセキュリティリスクの観点で内部からの実行のみ許可としています。
 
 ## 4.gBizConnect Nodeのシステム間連携の事前設定
@@ -1355,4 +1355,4 @@ curl -u UserID:PassWord -X POST \
 
 ### 8.FAQ
 
-FAQに関しては「[gBizConnect FAQ](gBizConnectNode_faq.docx)」を参照してください。
+FAQに関しては「[gBizConnect FAQ](gBizConnectNode_faq.pdf)」を参照してください。
