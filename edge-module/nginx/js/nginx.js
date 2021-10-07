@@ -432,12 +432,54 @@ function check_requestBody(requestBody_json) {
         return new EdgeError(400, "This method[" + call_api_method + "] requires HTTP Request body.");
     }
     // value 不正
+    var call_api_body_json;
     try {
         if (call_api_method !== "GET") {
-            JSON.parse(call_api_body);
+            call_api_body_json = JSON.parse(call_api_body);
         }
     } catch (error) {
         return new EdgeError(400, "This parameter[body] is not JSON.(" + call_api_body + ")");
+    }
+    //Binary
+    // key ある場合はbinary簡易チェックを行う
+    if (call_api_method !== "GET") {
+        var binary = call_api_body_json["Binary"];
+        if (!(typeof (binary) === "undefined")) {
+            var parameterArray = [];
+            var i = 0;
+            //filename,data,last_modified
+            var filename = binary["filename"];
+            var data = binary["data"];
+            var last_modified = binary["last_modified"];
+            // key なし
+            if (typeof (filename) === "undefined") {
+                parameterArray[i++] = "This body parameter does not include the [filename] key.";
+            }
+            // value null or 空
+            if (isEmpty (filename)) {
+                parameterArray[i++] = "The [filename] value contained in this body parameter is empty.";
+            }
+            // key なし
+            if (typeof (data) === "undefined") {
+                parameterArray[i++] = "This body parameter does not include the [data] key.";
+            }
+            // value null or 空
+            if (isEmpty (data)) {
+                parameterArray[i++] = "The [data] value contained in this body parameter is empty.";
+            }
+            // key なし
+            if (typeof (last_modified) === "undefined") {
+                parameterArray[i++] = "This body parameter does not include the [last_modified] key.";
+            }
+            // value null or 空
+            if (isEmpty (last_modified)) {
+                parameterArray[i++] = "The [last_modified] value contained in this body parameter is empty.";
+            }
+
+            if (parameterArray.length > 0) {
+                return new EdgeError(400, parameterArray.join());
+            }
+        }
     }
 
     return requestBody_json;
@@ -1341,6 +1383,27 @@ function scopeFiltering(responseBody, scope) {
 }
 
 /**
+ * バイナリデータのリクエストボディに送信元クライアントIDを追加する
+ * @private
+ * @param {Object} r
+ * @param {string} requestBody
+ * @param {Object} introspection_response
+ * @return {string}
+ */
+function addClientIdForBinary(r, requestBody, introspection_response) {
+    if (isEmpty(requestBody)) {
+        return requestBody;
+    }
+    var tmpRequestBody = JSON.parse(requestBody);
+    if (isEmpty(tmpRequestBody["Binary"])) {
+        return requestBody;
+    } else {
+        tmpRequestBody["Binary"]["source_client_id"] = introspection_response["azp"];
+        return JSON.stringify(tmpRequestBody);
+    }
+}
+
+/**
  * 空判定
  * value =undefined true
  * value ="" true
@@ -1349,7 +1412,7 @@ function scopeFiltering(responseBody, scope) {
  * @return {boolean}
  */
 function isEmpty(value) {
-    return (typeof (value) === "undefined") || (value === "");
+    return (typeof (value) === "undefined") || (value === "")|| (value === null);
 }
 
 /**
@@ -1778,8 +1841,12 @@ function call_system_api_init(r) {
 
     // requestBody
     var requestBody = r.requestBody;
+
+    //Binaryの場合はクライアントIDの付与
+    requestBody = addClientIdForBinary(r, requestBody, introspection_response);
+
     //json_flagがあるならjson変換
-    requestBody = convert_json(r, r.requestBody, GET_SET_FLAG.SET);
+    requestBody = convert_json(r, requestBody, GET_SET_FLAG.SET);
     requestBody = convertXml(r, requestBody, GET_SET_FLAG.SET);
 
     print_accesslog(r, RP_FLAG.PROVISION, getHostFullUrl(r), get_call_system_api(r), call_system_api_method, "Called the Internal API.");
