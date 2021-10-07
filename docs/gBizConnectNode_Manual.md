@@ -441,7 +441,7 @@ curl https://localhost/communication/status
 |No.|対象ユーザー|システムで実装が必要な内容|対応する手順|
 |:-|:-|:-|:-|
 |1|データ提供者|gBizConnect PortalのNode設定画面(基本設定)で「データ提供範囲設定」の項目を設定|[6.2.2gBizConnect Portalでデータ提供範囲の設定](#622gBizConnect-Portalでデータ提供範囲の設定)|
-|2|データ提供者|gBizConnect Portalで標準データ変換設定を実施する。(データ提供システムのデータが法人標準データの形式であれば不要）|[6.2.3(任意)gBizConnect Portalで標準データ変換の設定](#623(任意)gBizConnect-Portalで標準データ変換の設定)|
+|2|データ提供者|gBizConnect Portalで標準データ変換設定を実施する。(データ提供システムのデータが法人標準データの形式であれば不要）|[6.2.3(任意)gBizConnect Portalで標準データ変換の設定](#623任意gBizConnect-Portalで標準データ変換の設定)|
 |3|データ要求者|gBizConnect PortalのNode設定画面(都度同意)で「都度同意設定情報」の項目を設定 |[5.2.2データ要求者で必要な都度同意の事前設定](#522データ要求者で必要な都度同意の事前設定)|
 |4|データ提供者/データ要求者|双方でNode設定ファイルのダウンロード・反映|[5.3.Node設定ファイルをgBizConnect Nodeへ反映](#53Node設定ファイルをgBizConnect-Nodeへ反映)|
 
@@ -1355,4 +1355,4 @@ curl -u UserID:PassWord -X POST \
 
 ### 8.FAQ
 
-FAQに関しては「[gBizConnect FAQ](gBizConnectNode_faq.pdf)」を参照してください。
+FAQに関しては「[gBizConnect FAQ](gBizConnect_faq.pdf)」を参照してください。
