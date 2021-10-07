@@ -82,4 +82,4 @@ fi
 
 
 docker-compose -p "${nodeDir}" up -d --no-recreate
-docker-compose ps
+docker-compose -p "${nodeDir}" ps
