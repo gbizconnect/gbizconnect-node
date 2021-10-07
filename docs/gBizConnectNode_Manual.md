@@ -603,7 +603,7 @@ curl -u UserID:PassWord -X POST \
 ### 5.5.都度同意によるシステム間連携
 
 この項目は都度同意によるシステム間連携する場合の手順となります。事前同意によるシステム間連携は「[5.4.事前同意によるシステム間連携](#54事前同意によるシステム間連携)」を参照してください。
-また下記の手順で記載するgBizConnect NodeのAPIの詳細は「[gBizConnect Node API仕様](https://conn-portal.connect.gbiz.go.jp/top/menu)」を合わせてご参照ください。
+また下記の手順で記載するgBizConnect NodeのAPIの詳細は「[gBizConnect Node API仕様](https://github.com/gbizconnect/gbizconnect-node/blob/master/docs/gBizConnectNode.md#22-api一覧)」を合わせてご参照ください。
 
 (1)データ要求者システムからデータ提供者Nodeの下記のパラメータを指定しAPIを呼び出してください。
 
