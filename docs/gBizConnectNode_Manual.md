@@ -25,11 +25,11 @@
      * 外部接続のネットワーク・セキュリティの設定
      * 1.5.事前に必要な設定
 
-    * データ要求者が必要な準備　<br>(関連：「[5.データ要求者 gBizConnect Nodeのシステム間連携の設定](#5データ要求者gBizConnect-Nodeのシステム間連携の設定)」)
+    * データ要求者が必要な準備　<br>(関連：「[5.データ要求者 gBizConnect Nodeのシステム間連携の設定](#5データ要求者-gBizConnect-Nodeのシステム間連携の設定)」)
      * データ要求システムの準備
      * gBizID
 
-    * データ提供者が必要な準備　<br>(関連：「[6.データ提供者 gBizConnect Nodeのシステム間連携の設定](#6データ提供者gBizConnect-Nodeのシステム間連携の設定)」)
+    * データ提供者が必要な準備　<br>(関連：「[6.データ提供者 gBizConnect Nodeのシステム間連携の設定](#6データ提供者-gBizConnect-Nodeのシステム間連携の設定)」)
      * 提供APIの準備
 
 ### 1.3.用語の解説
@@ -79,7 +79,7 @@
 #### 1.5.1.名前解決の設定
 
 　gBizConnect Nodeを導入するサーバのホスト名は名前解決できるようにDNSを設定してください。<br>
-　※設定しない場合、「[5.データ要求者 gBizConnect Nodeのシステム間連携の設定](#5データ要求者gBizConnect-Nodeのシステム間連携の設定)」、「[6.データ提供者 gBizConnect Nodeのシステム間連携の設定](#6データ提供者gBizConnect-Nodeのシステム間連携の設定)」の手順が、実施できない可能性があります。
+　※設定しない場合、「[5.データ要求者 gBizConnect Nodeのシステム間連携の設定](#5データ要求者-gBizConnect-Nodeのシステム間連携の設定)」、「[6.データ提供者 gBizConnect Nodeのシステム間連携の設定](#6データ提供者-gBizConnect-Nodeのシステム間連携の設定)」の手順が、実施できない可能性があります。
 
 #### 1.5.2.Dockerのインストール
 
@@ -365,7 +365,7 @@ curl https://localhost/communication/status
 
 # データ要求者の設定
 
-本設定は、データ要求者の設定です。データ提供者の設定は「[6.データ提供者 gBizConnect Nodeのシステム間連携の設定](#6データ提供者gBizConnect-Nodeのシステム間連携の設定)」を参照してください。
+本設定は、データ要求者の設定です。データ提供者の設定は「[6.データ提供者 gBizConnect Nodeのシステム間連携の設定](#6データ提供者-gBizConnect-Nodeのシステム間連携の設定)」を参照してください。
 
 ## 5.データ要求者 gBizConnect Nodeのシステム間連携の設定
 ### 5.1.gBizConnect PortalでAPI利用申請
