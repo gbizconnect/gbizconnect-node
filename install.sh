@@ -4,11 +4,11 @@ SCRIPT_DIR=$(cd $(dirname $0); pwd)
 cd $SCRIPT_DIR
 
 #Dockerコンテナにマウントするディレクトリ・ファイルのダウンロードURL
-URL="https://github.com/gbizconnect/gbizconnect-node/archive/refs/tags/v1.0.0.tar.gz"
+URL="https://github.com/gbizconnect/gbizconnect-node/archive/master.tar.gz"
 #ダウンロードtarファイル名
-TAR_FILE_NAME="v1.0.0.tar.gz"
+TAR_FILE_NAME="master.tar.gz"
 #展開後のディレクトリ名
-EXTRACT_DIR_NAME="gbizconnect-node-1.0.0"
+EXTRACT_DIR_NAME="gbizconnect-node-master"
 #ダウンロードファイルのリネーム（プロジェクト名）
 DEFAULT_RENAME="node"
 #ログファイル名

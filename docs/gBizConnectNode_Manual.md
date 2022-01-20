@@ -141,12 +141,12 @@
 〇コマンド
 
 ```
-$ curl https://github.com/gbizconnect/gbizconnect-node/blob/master/install-1.0.0.sh -O
+$ curl https://raw.githubusercontent.com/gbizconnect/gbizconnect-node/master/install.sh -O
 ```
 
-(3)取得したシェルスクリプト(install-1.0.0.sh)を下記のコマンドで実行します。
+(3)取得したシェルスクリプト(install.sh)を下記のコマンドで実行します。
 
-〇install-1.0.0.shの実行内容
+〇install.shの実行内容
   * gBizConnect Node導入に必要な資材をGitHubから取得
   * 証明書を資材の中に配置
   * 資材の各種フォルダの権限設定変更
@@ -156,7 +156,7 @@ $ curl https://github.com/gbizconnect/gbizconnect-node/blob/master/install-1.0.0
 〇コマンド例
 
 ```
-$ bash install-1.0.0.sh \
+$ bash install.sh \
 --fqdn node.example.jp \
 --certificate opt/node/example/server.crt \
 --private-key opt/node/example/private.key \
@@ -551,7 +551,9 @@ curl https://localhost/communication/status
  図5-3-3 システム一覧画面
 </div>
 
-(3)gBizConnect Node設定画面で下記のURL をブラウザで開いて下さい。URLの「node.example.jp[:port]」をgBizConnect Nodeを導入したマシンのホスト名に修正します。
+(3)gBizConnect Node設定画面で下記のURL をブラウザで開いて下さい。URLの「node.example.jp」をgBizConnect Nodeを導入したマシンのホスト名に修正します。<br>
+　※gBizConnect Node設定画面は外部に公開しないでください。
+
 
 〇gBizConnect Node設定画面のURL
 
@@ -566,7 +568,7 @@ http://node.example.jp:8080/setting.php
 図5-3-4 gBizConnect Node設定画面
 </div>
 
-(4)図5-3-4の画面で「ファイルの選択」を選択し(2)でダウンロードしてしたNode設定ファイルを選択します。
+(4)図5-3-4の画面で「ファイルの選択」を選択し(2)でダウンロードしたNode設定ファイルを選択します。
 
 (5)図5-3-4の画面で「保存」を選択し、導入したgBizConnect NodeにNode設定ファイルを反映してください。
 
@@ -637,7 +639,7 @@ state *
 curl -u admin:password -X POST  'https://example_youkyu_node.com/v1/reception_tsudo'  \
 -H "accept: application/json"   \
 -H "Content-Type: application/x-www-form-urlencoded"  \
---data-urlencode "call_api=https://example_teikyou_node/v1/corporations/3010601021713"  \
+--data-urlencode "call_api=https://example_teikyou_node/v1/corporations/1234567890123"  \
 --data-urlencode "method=GET"  --data-urlencode "header=Accept: application/json"  \
 --data-urlencode "header=Content-Type: application/json"  \
 --data-urlencode "nonce: youkyu_nonce"  \
@@ -703,9 +705,9 @@ youkyu_nonce：リダイレクトで取得したパラメータ(nonce)
 </div>
 
 <div align="center">
-<img src="img/api_set4.png" alt="API登録終了画面" title="API登録終了画面">
+<img src="img/api_set4.png" alt="API登録完了画面" title="API登録完了画面">
 
- 図6-1-5 API登録終了画面
+ 図6-1-5 API登録完了画面
 </div>
 
 ### 6.2.1gBizConnect PortalでAPIマッピング
@@ -1134,7 +1136,7 @@ gBizConnect Nodeは、利用許可したシステムごとに過剰なリクエ�
 
 またgBizConnect Node流量制御はnginxの機能を利用しておりますので、NGINXの公式サイト合わせて参照してください。
 
-http://nginx.org/en/docs/http/ngx_http_limit_req_module.html
+http://nginx.org/en/docs/http/ngx_http_limit_req_module.html　<br>
 https://www.nginx.com/blog/rate-limiting-nginx/
 
 #### 7.4.1.gBizConnect Nodeで指定したIPアドレスに流量制御を設定する方法
@@ -1293,6 +1295,12 @@ proxy_set_header X-API-ORIGINAL-KEY $js_call_system_api_api_key;
 その後(8)を実施してください。
 
 (8)「[5.3.Node設定ファイルをgBizConnect Nodeへ反映](#53Node設定ファイルをgBizConnect-Nodeへ反映)」を参考にNode設定ファイルを更新してください。
+
+(9)【APIキー認証の場合】下記のコマンドを実行します。
+
+```
+sudo docker exec -it node_edge-module_1 nginx -s reload　
+```
 
 ### 7.8.事前同意によるシステム間連携のリクエストパターン
 

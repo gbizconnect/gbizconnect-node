@@ -34,7 +34,7 @@ function err {
 #ログ出力関連
 #ログファイル存在チェック
 if [ ! -e ../$ERROR_LOG_NAME ]; then
-    err "error.logが存在しません。build.shの実行前にinstall-x.y.z.shを実行してください。（x.y.zは実際のバージョンに読み替えてください。）"
+    err "error.logが存在しません。build.shの実行前にinstall.shを実行してください。"
     exit 1
 fi
 
