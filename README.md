@@ -1,4 +1,8 @@
 # お知らせ
+2022年3月29日<br>下記変更によりgbizconnect-nodeのバージョンがv2.0.0になりました。
+- Gビズコネクトのドメインが「gbiz-connect.go.jp」に変わりました。
+- ログ転送機能のOSがRedHat Universal Base Images Minimal 8.5に変わりました。
+
 2021年12月20日<br>「Apache Log4j」の脆弱性(CVE-2021-44228)について、対策を実施いたしました。
 当該リポジトリ(gbizconnect-node)においては、「Apache Log4j」の脆弱性(CVE-2021-44228)による影響はございません。
 

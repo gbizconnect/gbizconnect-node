@@ -266,7 +266,7 @@ curl https://localhost/communication/status
 
 ### 4.1.gBizConnect Portalでアカウントの作成
 
-(1)「[gBizConnectに参加する](https://portal.connect.gbiz.go.jp/menu_node)」から、「アカウント登録」を選択します。
+(1)「[gBizConnectに参加する](https://portal.gbiz-connect.go.jp/menu_node)」から、「アカウント登録」を選択します。
 
 <div align="center">
 <img src="img/account_set1.png" alt="gBizConnectに参加する画面" title="gBizConnectに参加する画面">
@@ -306,7 +306,7 @@ curl https://localhost/communication/status
 
 ### 4.2.gBizConnect PortalでgBizConnect接続システムの登録
 
-(1)「[gBizConnectに参加する](https://portal.connect.gbiz.go.jp/menu_node)」から「システム登録」を選択する。
+(1)「[gBizConnectに参加する](https://portal.gbiz-connect.go.jp/menu_node)」から「システム登録」を選択する。
 
 <div align="center">
 <img src="img/system_set1.png" alt="gBizConnectに参加する画面" title="gBizConnectに参加する画面">
@@ -367,7 +367,7 @@ curl https://localhost/communication/status
 ## 5.データ要求者 gBizConnect Nodeのシステム間連携の設定
 ### 5.1.gBizConnect PortalでAPI利用申請
 
-(1)「[gBizConnectに参加する](https://portal.connect.gbiz.go.jp/menu_node)」から「APIを利用する」を選択します。
+(1)「[gBizConnectに参加する](https://portal.gbiz-connect.go.jp/menu_node)」から「APIを利用する」を選択します。
 
 <div align="center">
 <img src="img/api_riyou1.png" alt="gBizConnectに参加する画面" title="gBizConnectに参加する画面">
@@ -531,7 +531,7 @@ curl https://localhost/communication/status
 図5-3-1 API利用申請の確認画面
 </div>
 
-(1)「[gBizConnectに参加する](https://portal.connect.gbiz.go.jp/menu_node)」から「gBizConnect Nodeのオプションを設定する」を選択します。
+(1)「[gBizConnectに参加する](https://portal.gbiz-connect.go.jp/menu_node)」から「gBizConnect Nodeのオプションを設定する」を選択します。
 
 </div>
 
@@ -661,7 +661,7 @@ youkyu_nonce：リダイレクトで取得したパラメータ(nonce)
 
 ※本設定を実施するには、「[4.2.gBizConnect PortalでgBizConnect接続システムの登録](#42gBizConnect-PortalでgBizConnect接続システムの登録)」の手順で事前にシステム登録をする必要があります。
 
-(1)「[gBizConnectに参加する](https://portal.connect.gbiz.go.jp/menu_node)」から「APIを公開する」を選択します。
+(1)「[gBizConnectに参加する](https://portal.gbiz-connect.go.jp/menu_node)」から「APIを公開する」を選択します。
 
 <div align="center">
 <img src="img/api_set0.png" alt="gBizConnectに参加する画面" title="gBizConnectに参加する画面">
@@ -714,7 +714,7 @@ youkyu_nonce：リダイレクトで取得したパラメータ(nonce)
 
 gBizConnect Nodeでは、APIマッピングすることで、登録されたAPIからデータ提供システムのAPIに変換し、データ提供システムからデータを取得します。
 
-(1)「[gBizConnectに参加する](https://portal.connect.gbiz.go.jp/menu_node)」から「APIを公開する」を選択します。
+(1)「[gBizConnectに参加する](https://portal.gbiz-connect.go.jp/menu_node)」から「APIを公開する」を選択します。
 
 <div align="center">
 <img src="img/api_mapping_set1.png" alt="gBizConnectに参加する画面" title="gBizConnectに参加する画面">
@@ -795,7 +795,7 @@ NodeAPIエンドポイントパス抽出正規表現：/v1/corporations/([0-9]+)
 
 ### 6.2.2gBizConnect Portalでデータ提供範囲の設定
 
- (1)図6-2-6の「[gBizConnectに参加する](https://portal.connect.gbiz.go.jp/menu_node)」画面で「gBizConnect Nodeのオプションを設定する」を選択します。
+ (1)図6-2-6の「[gBizConnectに参加する](https://portal.gbiz-connect.go.jp/menu_node)」画面で「gBizConnect Nodeのオプションを設定する」を選択します。
 
  <div align="center">
  <img src="img/tudodoui_teikyo_set1.png" alt="gBizConnectに参加する画面" title="gBizConnectに参加する画面">
@@ -839,7 +839,7 @@ NodeAPIエンドポイントパス抽出正規表現：/v1/corporations/([0-9]+)
 　法人標準データの形式に準拠していない場合は以下の設定を実施してください。<br>
 　また標準データ変換の詳細な説明は、「[Node仕様書：2.4.標準データマッピング機能](https://github.com/gbizconnect/gbizconnect-node/blob/master/docs/gBizConnectNode.md#24標準データマッピング機能)」を参照してください。
 
-(1)「[gBizConnectに参加する](https://portal.connect.gbiz.go.jp/menu_node)」から「APIを公開する」を選択します。
+(1)「[gBizConnectに参加する](https://portal.gbiz-connect.go.jp/menu_node)」から「APIを公開する」を選択します。
 
 <div align="center">
 <img src="img/hyouzyun_data_set1.png" alt="gBizConnectに参加する画面" title="gBizConnectに参加する画面">

@@ -1057,9 +1057,9 @@
 		}
 	],
 	"oauth":{
-		"oauth_token_introspect_endpoint":"https://auth-node.connect.gbiz.go.jp/auth/realms/gbizconnect-node/protocol/openid-connect/token/introspect",
-		"oauth_token_endpoint":"https://auth-node.connect.gbiz.go.jp/auth/realms/gbizconnect-node/protocol/openid-connect/token",
-		"discovery":"https://auth-node.connect.gbiz.go.jp/auth/realms/gbizconnect-node/.well-known/openid-configuration"
+		"oauth_token_introspect_endpoint":"https://auth-node.gbiz-connect.go.jp/auth/realms/gbizconnect-node/protocol/openid-connect/token/introspect",
+		"oauth_token_endpoint":"https://auth-node.gbiz-connect.go.jp/auth/realms/gbizconnect-node/protocol/openid-connect/token",
+		"discovery":"https://auth-node.gbiz-connect.go.jp/auth/realms/gbizconnect-node/.well-known/openid-configuration"
 	},
 	"openid_connect":{
 		"no_consent_url":"https://app.example.jp/no_consent",

@@ -1,10 +1,10 @@
-FROM centos:centos8.3.2011
+FROM registry.access.redhat.com/ubi8/ubi-minimal:8.5-230
 
-LABEL version="gbizconnect.20.01"
+LABEL version="gbizconnect.22.01"
 
-RUN dnf -y update && \
-    dnf -y install yum-utils && \
-    dnf clean all
+RUN microdnf -y update && \
+    microdnf -y install yum-utils && \
+    microdnf clean all
 
 RUN rpm --import https://packages.treasuredata.com/GPG-KEY-td-agent
 RUN echo -e "\n\
@@ -15,7 +15,7 @@ gpgcheck=1\n\
 gpgkey=https://packages.treasuredata.com/GPG-KEY-td-agent\n\
 " > /etc/yum.repos.d/td.repo
 
-RUN dnf install -y td-agent && \
+RUN microdnf install -y td-agent && \
     td-agent-gem install fluent-plugin-secure-forward
 
 ENV LANG="ja_JP.UTF-8" \

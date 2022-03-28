@@ -112,7 +112,7 @@ services:
     working_dir: /var/www/myapp
 
   td-agent:
-    image: gbizconnect/gbizconnect-node-td-agent:v1.0.0
+    image: gbizconnect/gbizconnect-node-td-agent:v1.0.1
     ports:
       - 24224:24224/tcp
     user: "${gBizConnect_UID}:${gBizConnect_GID}"
