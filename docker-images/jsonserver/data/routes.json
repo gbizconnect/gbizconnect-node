@@ -1,0 +1,9 @@
+{
+  "/v1/corporations":"/corporations",
+  "/v1/corporations/:corporateNum":"/corporations-:corporateNum",
+  "/v1/corporations/:corporateNum/notifications":"/corporations-:corporateNum-notifications",
+  "/v1/corporations/:corporateNum/notifications/:notificationNum":"/corporations-:corporateNum-notifications-:notificationNum",
+  "/v1/professionals?corpid=:corpid&gbizid=:gbizid":"/corporations-:corpid",
+  "/v1/professionals?gbizid=:gbizid&corpid=:corpid":"/corporations-:corpid",
+  "/v1/professionals?corpid=:corpid":"/corporations-:corpid"
+}

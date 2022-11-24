@@ -217,6 +217,5 @@ NODE_HOME=`pwd`
 . ./bin/basic.sh
 . ./bin/permission.sh
 . ./bin/env.sh
-. ./bin/dns.sh
 
 out "sudo bash ${SCRIPT_DIR}/${DEFAULT_RENAME}/build.sh [--project-name arg] 入力して、コンテナを立ち上げてください。"

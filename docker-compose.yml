@@ -2,7 +2,7 @@ version: '3'
 services:
 
   edge-module:
-    image: gbizconnect/gbizconnect-node-nginx:v1.0.0
+    image: gbizconnect/gbizconnect-node-nginx:v1.0.2
     depends_on:
       - swaggerui
       - swaggereditor
@@ -13,30 +13,37 @@ services:
       /bin/sh -c
       "usermod -u ${gBizConnect_UID} nginx
       && groupmod -g ${gBizConnect_GID} nginx
+      && envsubst '
+      $$dummy
+      '< /etc/nginx/conf.d/edge-module.conf.template
+      > /etc/nginx/conf.d/edge-module.conf
+      && envsubst '
+      $$dns
+      '< /etc/nginx/conf.d/resolver.conf.template
+      > /etc/nginx/conf.d/resolver.conf
       && nginx -g 'daemon off;'"
     networks:
       - edge-network
     volumes:
-      - ${PWD}/edge-module/nginx/nginx.conf:/etc/nginx/nginx.conf
-      - ${PWD}/edge-module/nginx/conf.d/:/etc/nginx/conf.d/
-      - ${PWD}/edge-module/nginx/js/nginx.js:/etc/nginx/js/nginx.js
+      - ${PWD}/edge-module/nginx/conf.d/rate-limit.location.conf:/etc/nginx/conf.d/rate-limit.location.conf
+      - ${PWD}/edge-module/nginx/conf.d/rate-limit.http.conf:/etc/nginx/conf.d/rate-limit.http.conf
+      - ${PWD}/edge-module/nginx/conf.d/proxy-ssl-verify-depth.conf:/etc/nginx/conf.d/proxy-ssl-verify-depth.conf
+      - ${PWD}/edge-module/nginx/conf.d/lua-ssl-verify-depth.conf:/etc/nginx/conf.d/lua-ssl-verify-depth.conf
+      - ${PWD}/edge-module/nginx/conf.d/api.header.conf:/etc/nginx/conf.d/api.header.conf
       - ${PWD}/edge-module/nginx/ssl/server.crt:/etc/nginx/ssl/server.crt
       - ${PWD}/edge-module/nginx/ssl/private.key:/etc/nginx/ssl/private.key
-      - ${PWD}/edge-module/nginx/ssl/dh2048.pem:/etc/nginx/ssl/dh2048.pem
-      - ${PWD}/edge-module/nginx/html:/usr/share/nginx/html
       - ${PWD}/edge-module/nginx/.htpasswd:/etc/nginx/.htpasswd
       - ${PWD}/edge-module/log:/var/log/nginx/
       - ${PWD}/permanent/config.json:/etc/nginx/resources/config.json
+    environment: 
+      - dns=${dns}
 
   swaggerui:
-    image: swaggerapi/swagger-ui:v3.38.0
+    image: gbizconnect/gbizconnect-node-swaggerui:v1.0.2
 #    ports:
 #      - 8080:8080
     networks:
       - edge-network
-    volumes:
-      - ${PWD}/swaggerui/swagger.json:/usr/share/nginx/html/swagger.json
-      - ${PWD}/swaggerui/swagger.json.template:/usr/share/nginx/html/swagger.json.template
     command: >
       /bin/sh -c
       "envsubst '
@@ -44,21 +51,19 @@ services:
       $$NODE_PORT
       '< /usr/share/nginx/html/swagger.json.template
       > /usr/share/nginx/html/swagger.json
-      && sh /usr/share/nginx/run.sh;"
+      && sh /docker-entrypoint.d/40-swagger-ui.sh
+      && nginx -g 'daemon off;'"
     environment: 
-      - API_URL=https://${NODE_DOMAIN}/swaggerui/swagger.json
+      - SWAGGER_JSON_URL=https://${NODE_DOMAIN}/swaggerui/swagger.json
       - NODE_DOMAIN=${NODE_DOMAIN}
       - NODE_PORT=${NODE_PORT}
 
   swaggereditor:
-    image: swaggerapi/swagger-editor:v3.14.8
+    image: gbizconnect/gbizconnect-node-swaggereditor:v1.0.2
 #    ports:
-#      - 8080:8080
+#      - 8081:8081
     networks:
       - edge-network
-    volumes:
-      - ${PWD}/swaggereditor/index.html:/usr/share/nginx/html/index.html
-      - ${PWD}/swaggereditor/index.html.template:/usr/share/nginx/html/index.html.template
     command: >
       /bin/sh -c
       "envsubst '
@@ -72,7 +77,7 @@ services:
       - NODE_PORT=${NODE_PORT}
 
   jsonserver:
-    image: clue/json-server:latest
+    image: gbizconnect/gbizconnect-node-jsonserver:v1.0.2
     # ports:
       # - 80:80
     networks:
@@ -81,21 +86,26 @@ services:
       - ${PWD}/jsonserver/db.json:/data/db.json
       - ${PWD}/jsonserver/routes.json:/data/routes.json
     command: -r routes.json
+    init: true
 
   config-nginx-php:
-    image: nginx:1.18.0-alpine
+    image: gbizconnect/gbizconnect-node-config-nginx-php:v1.0.2
     depends_on:
       - config-php-script
     ports:
       - 8080:8080
     networks:
       - edge-network
-    volumes:
-      - ${PWD}/config-nginx-php/nginx.conf:/etc/nginx/nginx.conf
-      - ${PWD}/config-nginx-php/conf.d/config.conf:/etc/nginx/conf.d/config.conf
+    command: >
+      /bin/sh -c
+      "envsubst '
+      $$dummy
+      '< /etc/nginx/conf.d/config.conf.template
+      > /etc/nginx/conf.d/config.conf
+      && nginx -g 'daemon off;'"
 
   config-php-script:
-    image: gbizconnect/gbizconnect-node-php-fpm:v1.0.0
+    image: gbizconnect/gbizconnect-node-config-php-script:v1.0.2
 #    ports:
 #      - 9000:9000
     command: >
@@ -106,22 +116,18 @@ services:
     networks:
       - edge-network
     volumes:
-      - ${PWD}/config-php-script/html/setting.php:/var/www/html/setting.php
       - ${PWD}/config-php-script/log/php_error.log:/var/www/html/log/php_error.log
       - ${PWD}/permanent/config.json:/var/www/html/resources/config.json
     working_dir: /var/www/myapp
 
   td-agent:
-    image: gbizconnect/gbizconnect-node-td-agent:v1.0.1
+    image: gbizconnect/gbizconnect-node-td-agent:v1.0.2
     ports:
       - 24224:24224/tcp
     user: "${gBizConnect_UID}:${gBizConnect_GID}"
     networks:
       - edge-network
     volumes:
-      - ./td-agent/edge/td-agent.conf:/etc/td-agent/td-agent.conf
-      - ./td-agent/edge/cert:/etc/td-agent/cert
-      - ./td-agent/setting:/var/log/setting
       - ./td-agent/tmp:/var/log/td-agent/tmp
       - ./edge-module/log:/var/log/nginx/
       - ./config-php-script/log:/var/www/html/log
@@ -133,6 +139,7 @@ services:
       - /tmp
       - /run
     stop_signal: SIGRTMIN+3
+    init: true
 
 networks:
   edge-network:

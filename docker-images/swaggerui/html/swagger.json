@@ -1,0 +1,1421 @@
+{
+    "openapi": "3.0.1",
+    "info": {
+      "title": "gBizConnect Node API",
+      "version": "1.0.0"
+    },
+    "servers": [
+      {
+        "url": "https://localhost/jsonserver/v1"
+      }
+    ],
+    "tags": [
+      {
+        "name": "法人データ(HojindataApi)",
+        "description": "データ提供システムに事前登録されている法人データの取得・置換・部分更新"
+      },
+      {
+        "name": "証明書・通知書等(NotificationsApi)",
+        "description": "証明書・通知書等の取得・登録"
+      },
+      {
+        "name": "DB連携(DBLinkageApi)",
+        "description": "DB連携"
+      },
+      {
+        "name": "受付・要求API(ListenApi)",
+        "description": "gBizConnect Nodeを導入したシステムがデータ提供システムの公開するAPIを呼び出す際にリクエストを受け付ける"
+      },
+      {
+        "name": "スコープ選択画面(ScopeApi)",
+        "description": "都度同意でユーザがスコープを選択する画面"
+      }
+    ],
+    "paths": {
+      "/corporations": {
+        "get": {
+          "tags": [
+            "法人データ(HojindataApi)"
+          ],
+          "summary": "法人番号一覧取得",
+          "description": "法人番号の一覧を取得します。",
+          "operationId": "getCorporations",
+          "responses": {
+            "200": {
+              "description": "OK",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/CorporateNumberArray"
+                  }
+                }
+              }
+            },
+            "400": {
+              "description": "Bad Request"
+            },
+            "404": {
+              "description": "Not Found"
+            }
+          }
+        }
+      },
+      "/corporations/{corporate-number}": {
+        "get": {
+          "tags": [
+            "法人データ(HojindataApi)"
+          ],
+          "summary": "法人データ取得",
+          "description": "法人番号で指定された法人の法人データを、事前同意受付・要求APIのパラメータに渡されたスコープに基づいて取得します。",
+          "operationId": "getCorporationByCorporateNumber",
+          "parameters": [
+            {
+              "name": "corporate-number",
+              "in": "path",
+              "description": "法人番号",
+              "required": true,
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "スコープに基づいた法人データ",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Hojindata"
+                  }
+                }
+              }
+            },
+            "400": {
+              "description": "Bad Request"
+            },
+            "404": {
+              "description": "Not Found"
+            }
+          }
+        },
+        "put": {
+          "tags": [
+            "法人データ(HojindataApi)"
+          ],
+          "summary": "法人データ置換",
+          "description": "法人番号で指定された法人の法人データを置換します。置換はリクエストボディで渡された法人データで既存の法人データを置き換えるため、変更がない項目も全て含めてください。",
+          "operationId": "putCorporation",
+          "parameters": [
+            {
+              "name": "corporate-number",
+              "in": "path",
+              "description": "法人番号",
+              "required": true,
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "requestBody": {
+            "description": "法人データ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Hojindata"
+                }
+              }
+            },
+            "required": true
+          },
+          "responses": {
+            "200": {
+              "description": "OK",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Hojindata"
+                  }
+                }
+              }
+            },
+            "400": {
+              "description": "Bad Request"
+            },
+            "404": {
+              "description": "Not Found"
+            }
+          }
+        },
+        "patch": {
+          "tags": [
+            "法人データ(HojindataApi)"
+          ],
+          "summary": "法人データ部分更新",
+          "description": "法人番号で指定された法人の法人データを部分的に更新します。部分更新はリクエストボディで渡された法人データに含まれる項目だけを既存の法人データに反映します。変更がない項目を含める必要はありません。",
+          "operationId": "patchCorporation",
+          "parameters": [
+            {
+              "name": "corporate-number",
+              "in": "path",
+              "description": "法人番号",
+              "required": true,
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "requestBody": {
+            "description": "法人データ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Hojindata"
+                }
+              }
+            },
+            "required": true
+          },
+          "responses": {
+            "200": {
+              "description": "OK",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Hojindata"
+                  }
+                }
+              }
+            },
+            "400": {
+              "description": "Bad Request"
+            },
+            "404": {
+              "description": "Not Found"
+            }
+          }
+        }
+      },
+      "/corporations/{corporate-number}/notifications": {
+        "get": {
+          "tags": [
+            "証明書・通知書等(NotificationsApi)"
+          ],
+          "summary": "証明書・通知書等番号一覧取得",
+          "description": "法人番号で指定された法人の証明書・通知書等の通知番号一覧を取得します。",
+          "operationId": "getNotifications",
+          "parameters": [
+            {
+              "name": "corporate-number",
+              "in": "path",
+              "description": "法人番号",
+              "required": true,
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "OK",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/NotificationNumberArray"
+                  }
+                }
+              }
+            },
+            "404": {
+              "description": "Not Found"
+            }
+          }
+        },
+        "post": {
+          "tags": [
+            "証明書・通知書等(NotificationsApi)"
+          ],
+          "summary": "証明書・通知書等登録",
+          "description": "法人番号で指定された法人の証明書・通知書等を登録します。",
+          "operationId": "createNotification",
+          "parameters": [
+            {
+              "name": "corporate-number",
+              "in": "path",
+              "description": "法人番号",
+              "required": true,
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "requestBody": {
+            "description": "証明書・通知書等",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Shomeisho"
+                }
+              }
+            },
+            "required": true
+          },
+          "responses": {
+            "201": {
+              "description": "Created",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Shomeisho"
+                  }
+                }
+              }
+            },
+            "400": {
+              "description": "Bad Request"
+            }
+          }
+        }
+      },
+      "/corporations/{corporate-number}/notifications/{notification-number}": {
+        "get": {
+          "tags": [
+            "証明書・通知書等(NotificationsApi)"
+          ],
+          "summary": "証明書・通知書等取得",
+          "description": "法人番号と通知番号で指定された証明書・通知書等を取得します。",
+          "operationId": "getNotification",
+          "parameters": [
+            {
+              "name": "corporate-number",
+              "in": "path",
+              "description": "法人番号",
+              "required": true,
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "notification-number",
+              "in": "path",
+              "description": "通知番号",
+              "required": true,
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "OK",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Shomeisho"
+                  }
+                }
+              }
+            },
+            "400": {
+              "description": "Bad Request"
+            },
+            "404": {
+              "description": "Not Found"
+            }
+          }
+        }
+      },
+      "/professionals": {
+        "get": {
+          "tags": [
+            "DB連携(DBLinkageApi)"
+          ],
+          "summary": "DB連携",
+          "description": "パラメータ(法人番号,個人Gビズ内部ID)と、GビズIDで認証した情報との同一性を確認し、一致しない場合は認証のエラーを返却する。",
+          "operationId": "getProfessional",
+          "parameters": [
+            {
+              "name": "corpid",
+              "in": "query",
+              "description": "法人番号",
+              "required": false,
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "gbizid",
+              "in": "query",
+              "description": "個人Gビズ内部ID",
+              "required": false,
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "OK",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Hojindata"
+                  }
+                }
+              }
+            },
+            "400": {
+              "description": "Bad Request"
+            },
+            "404": {
+              "description": "Not Found"
+            }
+          }
+        }
+      },
+      "/reception_jizen": {
+        "post": {
+          "tags": [
+            "受付・要求API(ListenApi)"
+          ],
+          "summary": "事前同意受リクエスト受付・要求API",
+          "description": "事前同意のあるデータ提供システムのAPIを呼び出します。",
+          "operationId": "receptJizen",
+          "requestBody": {
+            "content": {
+              "application/x-www-form-urlencoded": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "call_api",
+                    "method"
+                  ],
+                  "properties": {
+                    "method": {
+                      "type": "string",
+                      "description": "呼び出すデータ提供システムのAPIのメソッド",
+                      "enum": [
+                        "GET",
+                        "POST",
+                        "PUT",
+                        "PATCH"
+                      ]
+                    },
+                    "call_api": {
+                      "type": "string",
+                      "description": "呼び出すデータ提供システムのAPIのエンドポイント。クライアントIDを指定する場合はパスのみ。<br>（例）<br>クライアントIDを指定しない場合: https://node.example.com/v1/corporations<br>クライアントIDを指定する場合: /v1/corporations"
+                    },
+                    "client_id": {
+                      "type": "string",
+                      "description": "呼び出すデータ提供システムのクライアントID。"
+                    },
+                    "header": {
+                      "type": "array",
+                      "description": "呼び出すデータ提供システムのAPIの呼び出しに必要なヘッダ。複数のヘッダを指定する場合、次のように指定。<br>header=accept: application/json&header=content-type: application/json",
+                      "items": {
+                        "type": "string",
+                        "enum": [
+                          "Accept: application/json",
+                          "Content-Type: application/json"
+                        ]
+                      }
+                    },
+                    "scope": {
+                      "type": "string",
+                      "description": "取得する法人データのスコープを指定。複数指定の場合、半角スペース区切り。指定しない場合、全スコープを指定したとみなす。スコープは以下。<br>スコープ：説明<br>basic：法人データの「Basic」の値<br>application：法人データの「Application」の値<br>finance：法人データの「Finance」の値<br>officer_list：法人データの「Officer list」の値<br>shareholder_list：法人データの「Shareholder list」の値<br>office_list：法人データの「Office list」の値<br>list_of_professions：法人データの「List of professions」の値<br>certificate：法人データの「Certificate」の値",
+                      "enum": [
+                        "basic",
+                        "application",
+                        "finance",
+                        "officer_list",
+                        "shareholder_list",
+                        "office_list",
+                        "list_of_professions",
+                        "certificate"
+                      ]
+                    },
+                    "body": {
+                      "type": "string",
+                      "description": "呼び出すデータ提供システムのAPIの呼び出しに必要なJSON"
+                    }
+                  }
+                }
+              }
+            },
+            "required": true
+          },
+          "responses": {
+            "default": {
+              "description": "呼び出すデータ提供システムのAPI仕様のレスポンス参照"
+            }
+          },
+          "security": [
+            {
+              "BasicAuth": [
+                
+              ]
+            }
+          ]
+        }
+      },
+      "/reception_tsudo": {
+        "post": {
+          "tags": [
+            "受付・要求API(ListenApi)"
+          ],
+          "summary": "都度同意受リクエスト受付・要求API",
+          "description": "都度同意でユーザの同意を得たスコープでデータ提供システムのAPIを呼び出します。",
+          "operationId": "receptTsudo",
+          "requestBody": {
+            "content": {
+              "application/x-www-form-urlencoded": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "call_api",
+                    "method",
+                    "nonce"
+                  ],
+                  "properties": {
+                    "method": {
+                      "type": "string",
+                      "description": "呼び出すデータ提供システムのAPIのメソッド",
+                      "enum": [
+                        "GET",
+                        "POST",
+                        "PUT",
+                        "PATCH"
+                      ]
+                    },
+                    "call_api": {
+                      "type": "string",
+                      "description": "呼び出すデータ提供システムのAPIのURL。クライアントIDを指定する場合はパスのみ。<br>（例）<br>クライアントIDが無い場合: https://node.example.com/v1/corporations<br>クライアントIDが有る場合: /v1/corporations"
+                    },
+                    "client_id ": {
+                      "type": "string",
+                      "description": "呼び出すデータ提供システムAPIのクライアントID。"
+                    },
+                    "header": {
+                      "type": "array",
+                      "description": "呼び出すデータ提供システムのAPIの呼び出しに必要なヘッダ。複数のヘッダを指定する場合、次のように指定。<br>header=accept: application/json&header=content-type: application/json",
+                      "items": {
+                        "type": "string",
+                        "enum": [
+                          "Accept: application/json",
+                          "Content-Type: application/json"
+                        ]
+                      }
+                    },
+                    "nonce": {
+                      "type": "string",
+                      "description": "都度同意後のリダイレクトURLのクエリーパラメータnonceの値を指定"
+                    },
+                    "body": {
+                      "type": "string",
+                      "description": "呼び出すデータ提供システムのAPIの呼び出しに必要なJSON"
+                    }
+                  }
+                }
+              }
+            },
+            "required": true
+          },
+          "responses": {
+            "default": {
+              "description": "呼び出すデータ提供システムのAPI仕様のレスポンス参照"
+            }
+          },
+          "security": [
+            {
+              "BasicAuth": [
+                
+              ]
+            }
+          ]
+        }
+      },
+      "/scope.html": {
+        "get": {
+          "tags": [
+            "スコープ選択画面(ScopeApi)"
+          ],
+          "summary": "スコープ選択画面取得",
+          "description": "ユーザの同意を得た場合、gBizConnect Node導入時に設定した呼び出し側システムのURLにリダイレクトします。リダイレクトURLのクエリーパラメータstateの値がスコープ選択画面リクエスト時に指定したstateの値と一致することをチェックしてください。",
+          "operationId": "selectScope",
+          "parameters": [
+            {
+              "name": "state",
+              "in": "query",
+              "description": "呼び出し側システムで生成するランダム文字列",
+              "required": true,
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "OK"
+            }
+          }
+        }
+      }
+    },
+    "components": {
+      "schemas": {
+        "CorporateNumberArray": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "description": "Corporate number"
+          }
+        },
+        "NotificationNumberArray": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "description": "ID"
+          }
+        },
+        "Hojindata": {
+          "type": "object",
+          "properties": {
+            "Basic": {
+              "$ref": "#/components/schemas/Basic"
+            },
+            "Application": {
+              "$ref": "#/components/schemas/Application"
+            },
+            "Finance": {
+              "$ref": "#/components/schemas/Finance"
+            },
+            "Officer list": {
+              "$ref": "#/components/schemas/OfficerList"
+            },
+            "Shareholder list": {
+              "$ref": "#/components/schemas/ShareholderList"
+            },
+            "Office list": {
+              "$ref": "#/components/schemas/OfficeList"
+            },
+            "List of professions": {
+              "$ref": "#/components/schemas/ListOfProfessions"
+            }
+          }
+        },
+        "Shomeisho": {
+          "type": "object",
+          "properties": {
+            "Certificate": {
+              "$ref": "#/components/schemas/Certificate"
+            }
+          }
+        },
+        "Basic":{
+          "type":"object",
+          "properties":{
+            "Destination":{
+              "type":"object",
+              "properties":{
+                "Corporate number":{
+                  "type":"string"
+                },
+                "Corporate name":{
+                  "type":"string"
+                },
+                "Corporate name Kana":{
+                  "type":"string"
+                },
+                "Head office address1":{
+                  "type":"string"
+                },
+                "Head office address2":{
+                  "type":"string"
+                },
+                "Head office building name":{
+                  "type":"string"
+                },
+                "Branch office name":{
+                  "type":"string"
+                },
+                "Branch office address1":{
+                  "type":"string"
+                },
+                "Branch office address2":{
+                  "type":"string"
+                },
+                "Branch office building name":{
+                  "type":"string"
+                },
+                "Branch office postal code":{
+                  "type":"string"
+                }
+              }
+            },
+            "Application date":{
+              "type":"object",
+              "properties":{
+                "Application date":{
+                  "type":"string"
+                }
+              }
+            },
+            "Content":{
+              "type":"object",
+              "properties":{
+                "Establishment date":{
+                  "type":"string"
+                },
+                "Capital":{
+                  "type":"string"
+                },
+                "Employee number":{
+                  "type":"string"
+                },
+                "Regular employee number":{
+                  "type":"string"
+                }
+              }
+            },
+            "Contact information":{
+              "type":"object",
+              "properties":{
+                "Department":{
+                  "type":"string"
+                },
+                "Position":{
+                  "type":"string"
+                },
+                "Last name":{
+                  "type":"string"
+                },
+                "Last name Kana":{
+                  "type":"string"
+                },
+                "First name":{
+                  "type":"string"
+                },
+                "First name Kana":{
+                  "type":"string"
+                },
+                "Phone number":{
+                  "type":"string"
+                },
+                "Extension number":{
+                  "type":"string"
+                },
+                "Email address":{
+                  "type":"string"
+                },
+                "Address1":{
+                  "type":"string"
+                },
+                "Address2":{
+                  "type":"string"
+                },
+                "Building name":{
+                  "type":"string"
+                },
+                "Web form":{
+                  "type":"string"
+                }
+              }
+            },
+            "Publisher":{
+              "type":"object",
+              "properties":{
+                "Corporate number":{
+                  "type":"string"
+                },
+                "Corporate name":{
+                  "type":"string"
+                },
+                "Corporate name Kana":{
+                  "type":"string"
+                },
+                "Industry code":{
+                  "type":"string"
+                },
+                "Head office address1":{
+                  "type":"string"
+                },
+                "Head office address2":{
+                  "type":"string"
+                },
+                "Head office building name":{
+                  "type":"string"
+                },
+                "Branch office name":{
+                  "type":"string"
+                },
+                "Branch office address1":{
+                  "type":"string"
+                },
+                "Branch office address2":{
+                  "type":"string"
+                },
+                "Branch office building name":{
+                  "type":"string"
+                },
+                "Branch office postal code":{
+                  "type":"string"
+                },
+                "Representative role":{
+                  "type":"string"
+                },
+                "Last name of representative":{
+                  "type":"string"
+                },
+                "First name of representative":{
+                  "type":"string"
+                }
+              }
+            },
+            "Delegation":{
+              "type":"object",
+              "properties":{
+                "Role":{
+                  "type":"string"
+                },
+                "Delegator":{
+                  "type":"string"
+                }
+              }
+            }
+          }
+        },
+        "Application":{
+          "type":"object",
+          "properties":{
+            "Contents":{
+              "type":"object",
+              "properties":{
+                "Title":{
+                  "type":"string"
+                },
+                "Summary":{
+                  "type":"string"
+                },
+                "Content":{
+                  "type":"string"
+                },
+                "Last updated":{
+                  "type":"string"
+                }
+              }
+            }
+          }
+        },
+        "Finance":{
+          "type":"array",
+          "items":{
+            "type":"object",
+            "properties":{
+              "Other":{
+                "type":"object",
+                "properties":{
+                  "Corporate number":{
+                    "type":"string"
+                  }
+                }
+              },
+              "Content":{
+                "type":"object",
+                "properties":{
+                  "Fiscal date":{
+                    "type":"string"
+                  },
+                  "Business period start date":{
+                    "type":"string"
+                  },
+                  "Business period end date":{
+                    "type":"string"
+                  },
+                  "Number of employees at end of period":{
+                    "type":"string"
+                  },
+                  "Total assets":{
+                    "type":"string"
+                  },
+                  "Total current assets":{
+                    "type":"string"
+                  },
+                  "Cash and deposits":{
+                    "type":"string"
+                  },
+                  "Notes receivable":{
+                    "type":"string"
+                  },
+                  "Accounts receivable":{
+                    "type":"string"
+                  },
+                  "Securities":{
+                    "type":"string"
+                  },
+                  "Inventories":{
+                    "type":"string"
+                  },
+                  "Total other current assets":{
+                    "type":"string"
+                  },
+                  "Advance payment":{
+                    "type":"string"
+                  },
+                  "Short-term loans receivable":{
+                    "type":"string"
+                  },
+                  "Allowance for doubtful accounts":{
+                    "type":"string"
+                  },
+                  "Total fixed assets":{
+                    "type":"string"
+                  },
+                  "Total tangible fixed assets":{
+                    "type":"string"
+                  },
+                  "Land":{
+                    "type":"string"
+                  },
+                  "Total intangible assets":{
+                    "type":"string"
+                  },
+                  "Total other fixed assets":{
+                    "type":"string"
+                  },
+                  "Total loan":{
+                    "type":"string"
+                  },
+                  "Total debt":{
+                    "type":"string"
+                  },
+                  "Total current liabilities":{
+                    "type":"string"
+                  },
+                  "Bills payable":{
+                    "type":"string"
+                  },
+                  "Accounts payable":{
+                    "type":"string"
+                  },
+                  "Short-term debt":{
+                    "type":"string"
+                  },
+                  "Total other current liabilities":{
+                    "type":"string"
+                  },
+                  "Other payables":{
+                    "type":"string"
+                  },
+                  "Advance received":{
+                    "type":"string"
+                  },
+                  "Deposit":{
+                    "type":"string"
+                  },
+                  "Total fixed liabilities":{
+                    "type":"string"
+                  },
+                  "Long-term liabilities":{
+                    "type":"string"
+                  },
+                  "Total net assets":{
+                    "type":"string"
+                  },
+                  "Capital":{
+                    "type":"string"
+                  },
+                  "Capital reserves":{
+                    "type":"string"
+                  },
+                  "Revenues":{
+                    "type":"string"
+                  },
+                  "Costs":{
+                    "type":"string"
+                  },
+                  "Depreciation within costs":{
+                    "type":"string"
+                  },
+                  "Labor cost":{
+                    "type":"string"
+                  },
+                  "Gross profit":{
+                    "type":"string"
+                  },
+                  "Selling general and administrative expenses":{
+                    "type":"string"
+                  },
+                  "Depreciation within SG & A":{
+                    "type":"string"
+                  },
+                  "Personnel expenses":{
+                    "type":"string"
+                  },
+                  "Operating income":{
+                    "type":"string"
+                  },
+                  "Non-operating income":{
+                    "type":"string"
+                  },
+                  "Non-operating expenses":{
+                    "type":"string"
+                  },
+                  "Ordinary income":{
+                    "type":"string"
+                  },
+                  "Extraordinary benefit":{
+                    "type":"string"
+                  },
+                  "Extraordinary loss":{
+                    "type":"string"
+                  },
+                  "Income before income taxes":{
+                    "type":"string"
+                  },
+                  "Net income":{
+                    "type":"string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "OfficerList": {
+          "type":"array",
+          "items":{
+            "type":"object",
+            "properties":{
+              "Other":{
+                "type":"object",
+                "properties":{
+                  "Corporate number":{
+                    "type":"string"
+                  }
+                }
+              },
+              "Content":{
+                "type":"object",
+                "properties":{
+                  "Officer list entry date":{
+                    "type":"string"
+                  },
+                  "Position":{
+                    "type":"string"
+                  },
+                  "Last name":{
+                    "type":"string"
+                  },
+                  "Last name Kana":{
+                    "type":"string"
+                  },
+                  "First name":{
+                    "type":"string"
+                  },
+                  "First name Kana":{
+                    "type":"string"
+                  },
+                  "Birthday":{
+                    "type":"string"
+                  },
+                  "Sex":{
+                    "type":"string"
+                  },
+                  "List of professions":{
+                    "type":"object",
+                    "properties":{
+                      "Code":{
+                        "type":"string"
+                      },
+                      "Name":{
+                        "type":"string"
+                      },
+                      "Registration number":{
+                        "type":"string"
+                      },
+                      "Registration date":{
+                        "type":"string"
+                      },
+                      "Expiration date":{
+                        "type":"string"
+                      },
+                      "Office name":{
+                        "type":"string"
+                      },
+                      "Office Address1":{
+                        "type":"string"
+                      },
+                      "Office Address2":{
+                        "type":"string"
+                      },
+                      "Office building name":{
+                        "type":"string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "ShareholderList": {
+          "type":"array",
+          "items":{
+            "type":"object",
+            "properties":{
+              "Other":{
+                "type":"object",
+                "properties":{
+                  "Corporate number":{
+                    "type":"string"
+                  }
+                }
+              },
+              "Content":{
+                "type":"object",
+                "properties":{
+                  "Shareholder list entry date":{
+                    "type":"string"
+                  },
+                  "Corporate name or investor name":{
+                    "type":"string"
+                  },
+                  "Corporate name or investor name Kana":{
+                    "type":"string"
+                  },
+                  "Last name of investor":{
+                    "type":"string"
+                  },
+                  "Last name of investor Kana":{
+                    "type":"string"
+                  },
+                  "First name of investor":{
+                    "type":"string"
+                  },
+                  "First name of investor Kana":{
+                    "type":"string"
+                  },
+                  "Corporate number":{
+                    "type":"string"
+                  },
+                  "Address1":{
+                    "type":"string"
+                  },
+                  "Address2":{
+                    "type":"string"
+                  },
+                  "Building name":{
+                    "type":"string"
+                  },
+                  "Investment ratio":{
+                    "type":"string"
+                  },
+                  "Large company classification":{
+                    "type":"string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "OfficeList": {
+          "type":"array",
+          "items":{
+            "type":"object",
+            "properties":{
+              "Other":{
+                "type":"object",
+                "properties":{
+                  "Corporate number":{
+                    "type":"string"
+                  }
+                }
+              },
+              "Content":{
+                "type":"object",
+                "properties":{
+                  "Office list entry date":{
+                    "type":"string"
+                  },
+                  "Office number":{
+                    "type":"string"
+                  },
+                  "Branch office name":{
+                    "type":"string"
+                  },
+                  "Branch office address1":{
+                    "type":"string"
+                  },
+                  "Branch office address2":{
+                    "type":"string"
+                  },
+                  "Building name":{
+                    "type":"string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "ListOfProfessions": {
+          "type":"array",
+          "items":{
+            "type":"object",
+            "properties":{
+              "Content":{
+                "type":"object",
+                "properties":{
+                  "Code":{
+                    "type":"string"
+                  },
+                  "Name":{
+                    "type":"string"
+                  },
+                  "Registration number":{
+                    "type":"string"
+                  },
+                  "Last name":{
+                    "type":"string"
+                  },
+                  "Last name kana":{
+                    "type":"string"
+                  },
+                  "First name":{
+                    "type":"string"
+                  },
+                  "First name kana":{
+                    "type":"string"
+                  },
+                  "Birthday":{
+                    "type":"string"
+                  },
+                  "Registration date":{
+                    "type":"string"
+                  },
+                  "Expiration date":{
+                    "type":"string"
+                  },
+                  "Office name":{
+                    "type":"string"
+                  },
+                  "Office location1":{
+                    "type":"string"
+                  },
+                  "Office location2":{
+                    "type":"string"
+                  },
+                  "Office building name":{
+                    "type":"string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "Certificate":{
+          "type":"object",
+          "properties":{
+            "Destination":{
+              "type":"object",
+              "properties":{
+                "Corporate number":{
+                  "type":"string"
+                },
+                "Corporate name":{
+                  "type":"string"
+                },
+                "Corporate name Kana":{
+                  "type":"string"
+                },
+                "Head office address1":{
+                  "type":"string"
+                },
+                "Head office address2":{
+                  "type":"string"
+                },
+                "Head office building name":{
+                  "type":"string"
+                },
+                "Branch office name":{
+                  "type":"string"
+                },
+                "Branch office address1":{
+                  "type":"string"
+                },
+                "Branch office address2":{
+                  "type":"string"
+                },
+                "Branch office building name":{
+                  "type":"string"
+                },
+                "Branch office postal code":{
+                  "type":"string"
+                },
+                "Role of representative":{
+                  "type":"string"
+                },
+                "Last name of representative":{
+                  "type":"string"
+                },
+                "First name of representative":{
+                  "type":"string"
+                }
+              }
+            },
+            "Contents":{
+              "type":"object",
+              "properties":{
+                "Types of corporate numbers of public organizations":{
+                  "type":"string"
+                },
+                "Name of issuing organization":{
+                  "type":"string"
+                },
+                "Corporate number of public organization":{
+                  "type":"string"
+                },
+                "Name of public organization":{
+                  "type":"string"
+                },
+                "Department":{
+                  "type":"string"
+                },
+                "Position":{
+                  "type":"string"
+                },
+                "Last name":{
+                  "type":"string"
+                },
+                "First name":{
+                  "type":"string"
+                },
+                "Phone number":{
+                  "type":"string"
+                },
+                "Extension number":{
+                  "type":"string"
+                },
+                "Email address":{
+                  "type":"string"
+                }
+              }
+            },
+            "Issuance information":{
+              "type":"object",
+              "properties":{
+                "Issue date":{
+                  "type":"string"
+                },
+                "ID":{
+                  "type":"string"
+                }
+              }
+            },
+            "Notification content":{
+              "type":"object",
+              "properties":{
+                "Name":{
+                  "type":"string"
+                },
+                "Target":{
+                  "type":"string"
+                },
+                "Value":{
+                  "type":"string"
+                },
+                "Start date":{
+                  "type":"string"
+                },
+                "End date":{
+                  "type":"string"
+                },
+                "Remarks":{
+                  "type":"string"
+                }
+              }
+            },
+            "Contact information":{
+              "type":"object",
+              "properties":{
+                "Department":{
+                  "type":"string"
+                },
+                "Position":{
+                  "type":"string"
+                },
+                "Last name":{
+                  "type":"string"
+                },
+                "Last name Kana":{
+                  "type":"string"
+                },
+                "First name":{
+                  "type":"string"
+                },
+                "First name Kana":{
+                  "type":"string"
+                },
+                "Phone number":{
+                  "type":"string"
+                },
+                "Extension number":{
+                  "type":"string"
+                },
+                "Email address":{
+                  "type":"string"
+                },
+                "Address":{
+                  "type":"string"
+                },
+                "Web form":{
+                  "type":"string"
+                }
+              }
+            },
+            "Publisher":{
+              "type":"object",
+              "properties":{
+                "Corporate number":{
+                  "type":"string"
+                },
+                "Corporate name":{
+                  "type":"string"
+                },
+                "Corporate name Kana":{
+                  "type":"string"
+                },
+                "Head office address1":{
+                  "type":"string"
+                },
+                "Head office address2":{
+                  "type":"string"
+                },
+                "Head office building name":{
+                  "type":"string"
+                },
+                "Branch office name":{
+                  "type":"string"
+                },
+                "Branch office address1":{
+                  "type":"string"
+                },
+                "Branch office address2":{
+                  "type":"string"
+                },
+                "Branch office building name":{
+                  "type":"string"
+                },
+                "Branch office postal code":{
+                  "type":"string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "securitySchemes": {
+        "BasicAuth": {
+          "type": "http",
+          "scheme": "basic"
+        }
+      }
+    }
+  }

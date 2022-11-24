@@ -1,0 +1,1071 @@
+{
+	"client_id":"",
+	"client_secret":"",
+	"system_name": "SystemName",
+	"call_system_api_headers":{
+		"authorization":"Basic zzzzzzzzzzzzzzz",
+		"api_key":"apikeyApiKeyAPIKEY"
+	},
+	"meta": {
+		"add_flag": true
+	},
+	"authorized_server_list":[
+		{
+			"domain":"https://node.example.jp",
+			"client_id":"yyyyyyyyyyyyy-yyyy-yyyy-yyyyyyyyyyyy",
+			"name": "DatastoreSystemName",
+			"scopes": [
+				{
+					"name": "xxx",
+					"value": "yyy"
+				}
+			]
+		}
+	],
+	"authorized_client_list":[
+		{
+			"client_id":"xxxxxxxxxxxxx-xxxx-xxxx-xxxxxxxxxxxx",
+			"endpoint":[
+				{
+					"uri":"^https://node.example.jp/v1/corporations$",
+					"method":"GET"
+				},
+				{
+					"uri":"^https://node.example.jp/v1/corporations/([0-9]+)$",
+					"method":"GET"
+				},
+				{
+					"uri":"^https://node.example.jp/v1/corporations/([0-9]+)$",
+					"method":"PUT"
+				},
+				{
+					"uri":"^https://node.example.jp/v1/corporations/([0-9]+)$",
+					"method":"PATCH"
+				},
+				{
+					"uri":"^https://node.example.jp/v1/corporations/([0-9]+)/notifications$",
+					"method":"GET"
+				},
+				{
+					"uri":"^https://node.example.jp/v1/corporations/([0-9]+)/notifications$",
+					"method":"POST"
+				},
+				{
+					"uri":"^https://node.example.jp/v1/corporations/([0-9]+)/notifications/([0-9]+)$",
+					"method":"GET"
+				},
+				{
+					"uri":"^https://node.example.jp/v1/xml$",
+					"method":"GET"
+				}
+			]
+		},
+		{
+			"client_id":"zzzzzzzzzzzzz-zzzz-zzzz-zzzzzzzzzzzz",
+			"endpoint":[
+				{
+					"uri":"^https://node.example.jp/v1/corporations$",
+					"method":"GET"
+				}
+			]
+		}
+	],
+	"internal_api_mappings":[
+		{
+			"system_api_addr":"http://app.example.jp",
+			"system_api_uri_extract":"^/v1/corporations$",
+			"system_api_uri_replace":"/corporations"
+		},
+		{
+			"system_api_addr":"http://app.example.jp",
+			"system_api_uri_extract":"^/v1/corporations/([0-9]+)$",
+			"system_api_uri_replace":"/corporations/$1"
+		},
+		{
+			"system_api_addr":"http://app.example.jp",
+			"system_api_uri_extract":"^/v1/corporations/([0-9]+)/notifications$",
+			"system_api_uri_replace":"/corporations/$1/notifications"
+		},
+		{
+			"system_api_addr":"http://app.example.jp",
+			"system_api_uri_extract":"^/v1/corporations/([0-9]+)/notifications/([0-9]+)$",
+			"system_api_uri_replace":"/corporations/$1/notifications/$2"
+		},
+		{
+			"system_api_addr":"http://app.example.jp",
+			"system_api_uri_extract":"^/v1/xml$",
+			"system_api_uri_replace":"/xml"
+		}
+	],
+	"xml_converts":[
+		{
+			"xml_convert_get_flag": true,
+			"xml_convert_uri":"^/v1/xml$",
+			"xml_convert_method": "GET"
+		}
+	],
+	"json_converts":[
+		{
+			"json_convert_get_flag":true,
+			"json_convert_set_flag":false,
+			"array_convert_get_flag": true,
+			"json_convert_uri":"^/v1/corporations$",
+			"json_convert_method":"GET",
+			"json_convert_rule":"rule_corporations_list",
+			"array_convert_rule":"rule_corporations_list"
+		},
+		{
+			"json_convert_get_flag":true,
+			"json_convert_set_flag":false,
+			"array_convert_get_flag": false,
+			"json_convert_uri":"^/v1/corporations/([0-9]+)$",
+			"json_convert_method":"GET",
+			"json_convert_rule":"rule_corporations"
+		},
+		{
+			"json_convert_get_flag":true,
+			"json_convert_set_flag":true,
+			"array_convert_get_flag": false,
+			"json_convert_uri":"^/v1/corporations/([0-9]+)$",
+			"json_convert_method":"PUT",
+			"json_convert_rule":"rule_corporations"
+		},
+		{
+			"json_convert_get_flag":true,
+			"json_convert_set_flag":true,
+			"array_convert_get_flag": false,
+			"json_convert_uri":"^/v1/corporations/([0-9]+)$",
+			"json_convert_method":"PATCH",
+			"json_convert_rule":"rule_corporations"
+		},
+		{
+			"json_convert_get_flag":true,
+			"json_convert_set_flag":false,
+			"array_convert_get_flag": false,
+			"json_convert_uri":"^/v1/corporations/([0-9]+)/notifications$",
+			"json_convert_method":"GET",
+			"json_convert_rule":"rule_notifications_list"
+		},
+		{
+			"json_convert_get_flag":true,
+			"json_convert_set_flag":true,
+			"array_convert_get_flag": false,
+			"json_convert_uri":"^/v1/corporations/([0-9]+)/notifications$",
+			"json_convert_method":"POST",
+			"json_convert_rule":"rule_notifications"
+		},
+		{
+			"json_convert_get_flag":true,
+			"json_convert_set_flag":false,
+			"array_convert_get_flag": false,
+			"json_convert_uri":"^/v1/corporations/([0-9]+)/notifications/([0-9]+)$",
+			"json_convert_method":"GET",
+			"json_convert_rule":"rule_notifications"
+		}
+	],
+	"array_convert_rules":{
+		"rule_corporations_list":[
+			{
+				"datastore":""
+			}
+		]
+	},
+	"json_convert_rules":{
+		"rule_corporations_list":[
+			{
+				"response":"Basic.Destination.Corporate number",
+				"datastore":""
+			}
+		],
+		"rule_notifications_list":[
+			{
+				"response":"Certificate.Issuance information.ID",
+				"datastore":""
+			}
+		],
+		"rule_corporations":[
+			{
+				"response":"Basic.Destination.Corporate number",
+				"datastore":""
+			},
+			{
+				"response":"Basic.Destination.Corporate name",
+				"datastore":""
+			},
+			{
+				"response":"Basic.Destination.Corporate name Kana",
+				"datastore":""
+			},
+			{
+				"response":"Basic.Destination.Head office address1",
+				"datastore":""
+			},
+			{
+				"response":"Basic.Destination.Head office address2",
+				"datastore":""
+			},
+			{
+				"response":"Basic.Destination.Head office building name",
+				"datastore":""
+			},
+			{
+				"response":"Basic.Destination.Branch office name",
+				"datastore":""
+			},
+			{
+				"response":"Basic.Destination.Branch office address1",
+				"datastore":""
+			},
+			{
+				"response":"Basic.Destination.Branch office address2",
+				"datastore":""
+			},
+			{
+				"response":"Basic.Destination.Branch office building name",
+				"datastore":""
+			},
+			{
+				"response":"Basic.Destination.Branch office postal code",
+				"datastore":""
+			},
+			{
+				"response":"Basic.Application date.Application date",
+				"datastore":""
+			},
+			{
+				"response":"Basic.Content.Establishment date",
+				"datastore":""
+			},
+			{
+				"response":"Basic.Content.Capital",
+				"datastore":""
+			},
+			{
+				"response":"Basic.Content.Employee number",
+				"datastore":""
+			},
+			{
+				"response":"Basic.Content.Regular employee number",
+				"datastore":""
+			},
+			{
+				"response":"Basic.Contact information.Department",
+				"datastore":""
+			},
+			{
+				"response":"Basic.Contact information.Position",
+				"datastore":""
+			},
+			{
+				"response":"Basic.Contact information.Last name",
+				"datastore":""
+			},
+			{
+				"response":"Basic.Contact information.Last name Kana",
+				"datastore":""
+			},
+			{
+				"response":"Basic.Contact information.First name",
+				"datastore":""
+			},
+			{
+				"response":"Basic.Contact information.First name Kana",
+				"datastore":""
+			},
+			{
+				"response":"Basic.Contact information.Phone number",
+				"datastore":""
+			},
+			{
+				"response":"Basic.Contact information.Extension number",
+				"datastore":""
+			},
+			{
+				"response":"Basic.Contact information.Email address",
+				"datastore":""
+			},
+			{
+				"response":"Basic.Contact information.Address1",
+				"datastore":""
+			},
+			{
+				"response":"Basic.Contact information.Address2",
+				"datastore":""
+			},
+			{
+				"response":"Basic.Contact information.Building name",
+				"datastore":""
+			},
+			{
+				"response":"Basic.Contact information.Web form",
+				"datastore":""
+			},
+			{
+				"response":"Basic.Publisher.Corporate number",
+				"datastore":""
+			},
+			{
+				"response":"Basic.Publisher.Corporate name",
+				"datastore":""
+			},
+			{
+				"response":"Basic.Publisher.Corporate name Kana",
+				"datastore":""
+			},
+			{
+				"response":"Basic.Publisher.Industry code",
+				"datastore":""
+			},
+			{
+				"response":"Basic.Publisher.Head office address1",
+				"datastore":""
+			},
+			{
+				"response":"Basic.Publisher.Head office address2",
+				"datastore":""
+			},
+			{
+				"response":"Basic.Publisher.Head office building name",
+				"datastore":""
+			},
+			{
+				"response":"Basic.Publisher.Branch office name",
+				"datastore":""
+			},
+			{
+				"response":"Basic.Publisher.Branch office address1",
+				"datastore":""
+			},
+			{
+				"response":"Basic.Publisher.Branch office address2",
+				"datastore":""
+			},
+			{
+				"response":"Basic.Publisher.Branch office building name",
+				"datastore":""
+			},
+			{
+				"response":"Basic.Publisher.Branch office postal code",
+				"datastore":""
+			},
+			{
+				"response":"Basic.Publisher.Representative role",
+				"datastore":""
+			},
+			{
+				"response":"Basic.Publisher.Last name of representative",
+				"datastore":""
+			},
+			{
+				"response":"Basic.Publisher.First name of representative",
+				"datastore":""
+			},
+			{
+				"response":"Basic.Delegation.Role",
+				"datastore":""
+			},
+			{
+				"response":"Basic.Delegation.Delegator",
+				"datastore":""
+			},
+			{
+				"response":"Application.Contents.Title",
+				"datastore":""
+			},
+			{
+				"response":"Application.Contents.Summary",
+				"datastore":""
+			},
+			{
+				"response":"Application.Contents.Content",
+				"datastore":""
+			},
+			{
+				"response":"Application.Contents.Last updated",
+				"datastore":""
+			},
+			{
+				"response":"Finance[].Other.Corporate number",
+				"datastore":""
+			},
+			{
+				"response":"Finance[].Content.Fiscal date",
+				"datastore":""
+			},
+			{
+				"response":"Finance[].Content.Business period start date",
+				"datastore":""
+			},
+			{
+				"response":"Finance[].Content.Business period end date",
+				"datastore":""
+			},
+			{
+				"response":"Finance[].Content.Number of employees at end of period",
+				"datastore":""
+			},
+			{
+				"response":"Finance[].Content.Total assets",
+				"datastore":""
+			},
+			{
+				"response":"Finance[].Content.Total current assets",
+				"datastore":""
+			},
+			{
+				"response":"Finance[].Content.Cash and deposits",
+				"datastore":""
+			},
+			{
+				"response":"Finance[].Content.Notes receivable",
+				"datastore":""
+			},
+			{
+				"response":"Finance[].Content.Accounts receivable",
+				"datastore":""
+			},
+			{
+				"response":"Finance[].Content.Securities",
+				"datastore":""
+			},
+			{
+				"response":"Finance[].Content.Inventories",
+				"datastore":""
+			},
+			{
+				"response":"Finance[].Content.Total other current assets",
+				"datastore":""
+			},
+			{
+				"response":"Finance[].Content.Advance payment",
+				"datastore":""
+			},
+			{
+				"response":"Finance[].Content.Short-term loans receivable",
+				"datastore":""
+			},
+			{
+				"response":"Finance[].Content.Allowance for doubtful accounts",
+				"datastore":""
+			},
+			{
+				"response":"Finance[].Content.Total fixed assets",
+				"datastore":""
+			},
+			{
+				"response":"Finance[].Content.Total tangible fixed assets",
+				"datastore":""
+			},
+			{
+				"response":"Finance[].Content.Land",
+				"datastore":""
+			},
+			{
+				"response":"Finance[].Content.Total intangible assets",
+				"datastore":""
+			},
+			{
+				"response":"Finance[].Content.Total other fixed assets",
+				"datastore":""
+			},
+			{
+				"response":"Finance[].Content.Total loan",
+				"datastore":""
+			},
+			{
+				"response":"Finance[].Content.Total debt",
+				"datastore":""
+			},
+			{
+				"response":"Finance[].Content.Total current liabilities",
+				"datastore":""
+			},
+			{
+				"response":"Finance[].Content.Bills payable",
+				"datastore":""
+			},
+			{
+				"response":"Finance[].Content.Accounts payable",
+				"datastore":""
+			},
+			{
+				"response":"Finance[].Content.Short-term debt",
+				"datastore":""
+			},
+			{
+				"response":"Finance[].Content.Total other current liabilities",
+				"datastore":""
+			},
+			{
+				"response":"Finance[].Content.Other payables",
+				"datastore":""
+			},
+			{
+				"response":"Finance[].Content.Advance received",
+				"datastore":""
+			},
+			{
+				"response":"Finance[].Content.Deposit",
+				"datastore":""
+			},
+			{
+				"response":"Finance[].Content.Total fixed liabilities",
+				"datastore":""
+			},
+			{
+				"response":"Finance[].Content.Long-term liabilities",
+				"datastore":""
+			},
+			{
+				"response":"Finance[].Content.Total net assets",
+				"datastore":""
+			},
+			{
+				"response":"Finance[].Content.Capital",
+				"datastore":""
+			},
+			{
+				"response":"Finance[].Content.Capital reserves",
+				"datastore":""
+			},
+			{
+				"response":"Finance[].Content.Revenues",
+				"datastore":""
+			},
+			{
+				"response":"Finance[].Content.Costs",
+				"datastore":""
+			},
+			{
+				"response":"Finance[].Content.Depreciation within costs",
+				"datastore":""
+			},
+			{
+				"response":"Finance[].Content.Labor cost",
+				"datastore":""
+			},
+			{
+				"response":"Finance[].Content.Gross profit",
+				"datastore":""
+			},
+			{
+				"response":"Finance[].Content.Selling general and administrative expenses",
+				"datastore":""
+			},
+			{
+				"response":"Finance[].Content.Depreciation within SG & A",
+				"datastore":""
+			},
+			{
+				"response":"Finance[].Content.Personnel expenses",
+				"datastore":""
+			},
+			{
+				"response":"Finance[].Content.Operating income",
+				"datastore":""
+			},
+			{
+				"response":"Finance[].Content.Non-operating income",
+				"datastore":""
+			},
+			{
+				"response":"Finance[].Content.Non-operating expenses",
+				"datastore":""
+			},
+			{
+				"response":"Finance[].Content.Ordinary income",
+				"datastore":""
+			},
+			{
+				"response":"Finance[].Content.Extraordinary benefit",
+				"datastore":""
+			},
+			{
+				"response":"Finance[].Content.Extraordinary loss",
+				"datastore":""
+			},
+			{
+				"response":"Finance[].Content.Income before income taxes",
+				"datastore":""
+			},
+			{
+				"response":"Finance[].Content.Net income",
+				"datastore":""
+			},
+			{
+				"response":"Officer list[].Other.Corporate number",
+				"datastore":""
+			},
+			{
+				"response":"Officer list[].Content.Officer list entry date",
+				"datastore":""
+			},
+			{
+				"response":"Officer list[].Content.Position",
+				"datastore":""
+			},
+			{
+				"response":"Officer list[].Content.Last name",
+				"datastore":""
+			},
+			{
+				"response":"Officer list[].Content.Last name Kana",
+				"datastore":""
+			},
+			{
+				"response":"Officer list[].Content.First name",
+				"datastore":""
+			},
+			{
+				"response":"Officer list[].Content.First name Kana",
+				"datastore":""
+			},
+			{
+				"response":"Officer list[].Content.Birthday",
+				"datastore":""
+			},
+			{
+				"response":"Officer list[].Content.Sex",
+				"datastore":""
+			},
+			{
+				"response":"Officer list[].Content.List of professions.Code",
+				"datastore":""
+			},
+			{
+				"response":"Officer list[].Content.List of professions.Name",
+				"datastore":""
+			},
+			{
+				"response":"Officer list[].Content.List of professions.Registration number",
+				"datastore":""
+			},
+			{
+				"response":"Officer list[].Content.List of professions.Registration date",
+				"datastore":""
+			},
+			{
+				"response":"Officer list[].Content.List of professions.Expiration date",
+				"datastore":""
+			},
+			{
+				"response":"Officer list[].Content.List of professions.Office name",
+				"datastore":""
+			},
+			{
+				"response":"Officer list[].Content.List of professions.Office Address1",
+				"datastore":""
+			},
+			{
+				"response":"Officer list[].Content.List of professions.Office Address2",
+				"datastore":""
+			},
+			{
+				"response":"Officer list[].Content.List of professions.Office building name",
+				"datastore":""
+			},
+			{
+				"response":"Shareholder list[].Other.Corporate number",
+				"datastore":""
+			},
+			{
+				"response":"Shareholder list[].Content.Shareholder list entry date",
+				"datastore":""
+			},
+			{
+				"response":"Shareholder list[].Content.Corporate name or investor name",
+				"datastore":""
+			},
+			{
+				"response":"Shareholder list[].Content.Corporate name or investor name Kana",
+				"datastore":""
+			},
+			{
+				"response":"Shareholder list[].Content.Last name of investor",
+				"datastore":""
+			},
+			{
+				"response":"Shareholder list[].Content.Last name of investor Kana",
+				"datastore":""
+			},
+			{
+				"response":"Shareholder list[].Content.First name of investor",
+				"datastore":""
+			},
+			{
+				"response":"Shareholder list[].Content.First name of investor Kana",
+				"datastore":""
+			},
+			{
+				"response":"Shareholder list[].Content.Corporate number",
+				"datastore":""
+			},
+			{
+				"response":"Shareholder list[].Content.Address1",
+				"datastore":""
+			},
+			{
+				"response":"Shareholder list[].Content.Address2",
+				"datastore":""
+			},
+			{
+				"response":"Shareholder list[].Content.Building name",
+				"datastore":""
+			},
+			{
+				"response":"Shareholder list[].Content.Investment ratio",
+				"datastore":""
+			},
+			{
+				"response":"Shareholder list[].Content.Large company classification",
+				"datastore":""
+			},
+			{
+				"response":"Office list[].Other.Corporate number",
+				"datastore":""
+			},
+			{
+				"response":"Office list[].Content.Office list entry date",
+				"datastore":""
+			},
+			{
+				"response":"Office list[].Content.Office number",
+				"datastore":""
+			},
+			{
+				"response":"Office list[].Content.Branch office name",
+				"datastore":""
+			},
+			{
+				"response":"Office list[].Content.Branch office address1",
+				"datastore":""
+			},
+			{
+				"response":"Office list[].Content.Branch office address2",
+				"datastore":""
+			},
+			{
+				"response":"Office list[].Content.Building name",
+				"datastore":""
+			},
+			{
+				"response":"List of professions[].Content.Code",
+				"datastore":""
+			},
+			{
+				"response":"List of professions[].Content.Name",
+				"datastore":""
+			},
+			{
+				"response":"List of professions[].Content.Registration number",
+				"datastore":""
+			},
+			{
+				"response":"List of professions[].Content.Last name",
+				"datastore":""
+			},
+			{
+				"response":"List of professions[].Content.Last name kana",
+				"datastore":""
+			},
+			{
+				"response":"List of professions[].Content.First name",
+				"datastore":""
+			},
+			{
+				"response":"List of professions[].Content.First name kana",
+				"datastore":""
+			},
+			{
+				"response":"List of professions[].Content.Birthday",
+				"datastore":""
+			},
+			{
+				"response":"List of professions[].Content.Registration date",
+				"datastore":""
+			},
+			{
+				"response":"List of professions[].Content.Expiration date",
+				"datastore":""
+			},
+			{
+				"response":"List of professions[].Content.Office name",
+				"datastore":""
+			},
+			{
+				"response":"List of professions[].Content.Office location1",
+				"datastore":""
+			},
+			{
+				"response":"List of professions[].Content.Office location2",
+				"datastore":""
+			},
+			{
+				"response":"List of professions[].Content.Office building name",
+				"datastore":""
+			}
+		],
+		"rule_notifications":[
+			{
+				"response":"Certificate.Destination.Corporate number",
+				"datastore":""
+			},
+			{
+				"response":"Certificate.Destination.Corporate name",
+				"datastore":""
+			},
+			{
+				"response":"Certificate.Destination.Corporate name Kana",
+				"datastore":""
+			},
+			{
+				"response":"Certificate.Destination.Head office address1",
+				"datastore":""
+			},
+			{
+				"response":"Certificate.Destination.Head office address2",
+				"datastore":""
+			},
+			{
+				"response":"Certificate.Destination.Head office building name",
+				"datastore":""
+			},
+			{
+				"response":"Certificate.Destination.Branch office name",
+				"datastore":""
+			},
+			{
+				"response":"Certificate.Destination.Branch office address1",
+				"datastore":""
+			},
+			{
+				"response":"Certificate.Destination.Branch office address2",
+				"datastore":""
+			},
+			{
+				"response":"Certificate.Destination.Branch office building name",
+				"datastore":""
+			},
+			{
+				"response":"Certificate.Destination.Branch office postal code",
+				"datastore":""
+			},
+			{
+				"response":"Certificate.Destination.Role of representative",
+				"datastore":""
+			},
+			{
+				"response":"Certificate.Destination.Last name of representative",
+				"datastore":""
+			},
+			{
+				"response":"Certificate.Destination.First name of representative",
+				"datastore":""
+			},
+			{
+				"response":"Certificate.Contents.Types of corporate numbers of public organizations",
+				"datastore":""
+			},
+			{
+				"response":"Certificate.Contents.Name of issuing organization",
+				"datastore":""
+			},
+			{
+				"response":"Certificate.Contents.Corporate number of public organization",
+				"datastore":""
+			},
+			{
+				"response":"Certificate.Contents.Name of public organization",
+				"datastore":""
+			},
+			{
+				"response":"Certificate.Contents.Department",
+				"datastore":""
+			},
+			{
+				"response":"Certificate.Contents.Position",
+				"datastore":""
+			},
+			{
+				"response":"Certificate.Contents.Last name",
+				"datastore":""
+			},
+			{
+				"response":"Certificate.Contents.First name",
+				"datastore":""
+			},
+			{
+				"response":"Certificate.Contents.Phone number",
+				"datastore":""
+			},
+			{
+				"response":"Certificate.Contents.Extension number",
+				"datastore":""
+			},
+			{
+				"response":"Certificate.Contents.Email address",
+				"datastore":""
+			},
+			{
+				"response":"Certificate.Issuance information.Issue date",
+				"datastore":""
+			},
+			{
+				"response":"Certificate.Issuance information.ID",
+				"datastore":""
+			},
+			{
+				"response":"Certificate.Notification content.Name",
+				"datastore":""
+			},
+			{
+				"response":"Certificate.Notification content.Target",
+				"datastore":""
+			},
+			{
+				"response":"Certificate.Notification content.Value",
+				"datastore":""
+			},
+			{
+				"response":"Certificate.Notification content.Start date",
+				"datastore":""
+			},
+			{
+				"response":"Certificate.Notification content.End date",
+				"datastore":""
+			},
+			{
+				"response":"Certificate.Notification content.Remarks",
+				"datastore":""
+			},
+			{
+				"response":"Certificate.Contact information.Department",
+				"datastore":""
+			},
+			{
+				"response":"Certificate.Contact information.Position",
+				"datastore":""
+			},
+			{
+				"response":"Certificate.Contact information.Last name",
+				"datastore":""
+			},
+			{
+				"response":"Certificate.Contact information.Last name Kana",
+				"datastore":""
+			},
+			{
+				"response":"Certificate.Contact information.First name",
+				"datastore":""
+			},
+			{
+				"response":"Certificate.Contact information.First name Kana",
+				"datastore":""
+			},
+			{
+				"response":"Certificate.Contact information.Phone number",
+				"datastore":""
+			},
+			{
+				"response":"Certificate.Contact information.Extension number",
+				"datastore":""
+			},
+			{
+				"response":"Certificate.Contact information.Email address",
+				"datastore":""
+			},
+			{
+				"response":"Certificate.Contact information.Address",
+				"datastore":""
+			},
+			{
+				"response":"Certificate.Contact information.Web form",
+				"datastore":""
+			},
+			{
+				"response":"Certificate.Publisher.Corporate number",
+				"datastore":""
+			},
+			{
+				"response":"Certificate.Publisher.Corporate name",
+				"datastore":""
+			},
+			{
+				"response":"Certificate.Publisher.Corporate name Kana",
+				"datastore":""
+			},
+			{
+				"response":"Certificate.Publisher.Head office address1",
+				"datastore":""
+			},
+			{
+				"response":"Certificate.Publisher.Head office address2",
+				"datastore":""
+			},
+			{
+				"response":"Certificate.Publisher.Head office building name",
+				"datastore":""
+			},
+			{
+				"response":"Certificate.Publisher.Branch office name",
+				"datastore":""
+			},
+			{
+				"response":"Certificate.Publisher.Branch office address1",
+				"datastore":""
+			},
+			{
+				"response":"Certificate.Publisher.Branch office address2",
+				"datastore":""
+			},
+			{
+				"response":"Certificate.Publisher.Branch office building name",
+				"datastore":""
+			},
+			{
+				"response":"Certificate.Publisher.Branch office postal code",
+				"datastore":""
+			}
+		]
+	},
+	"scope_mappings" : [
+		{
+			"scope" : "basic",
+			"data_item" : "Basic"
+		}
+	],
+	"log_nginx_variables":[
+		{
+			"log_nginx_variable":"content_type",
+			"flag":false
+		},
+		{
+			"log_nginx_variable":"nginx_version",
+			"flag":false
+		},
+		{
+			"log_nginx_variable":"document_root",
+			"flag":false
+		},
+		{
+			"log_nginx_variable":"scheme",
+			"flag":false
+		},
+		{
+			"log_nginx_variable":"request",
+			"flag":false
+		}
+	],
+	"oauth":{
+		"oauth_token_introspect_endpoint":"https://auth-node.gbiz-connect.go.jp/auth/realms/gbizconnect-node/protocol/openid-connect/token/introspect",
+		"oauth_token_endpoint":"https://auth-node.gbiz-connect.go.jp/auth/realms/gbizconnect-node/protocol/openid-connect/token",
+		"discovery":"https://auth-node.gbiz-connect.go.jp/auth/realms/gbizconnect-node/.well-known/openid-configuration"
+	},
+	"openid_connect":{
+		"no_consent_url":"https://app.example.jp/no_consent",
+		"post_authorized_url":"https://app.example.jp/post_authorized",
+		"redirect_uri":"https://node.example.jp/v1/auth/redirect_uri",
+		"scope_authenticate_url":"https://node.example.jp/v1/auth",
+		"scope_no_authenticate_url":"https://app.example.jp/no_authenticate"
+	}
+}

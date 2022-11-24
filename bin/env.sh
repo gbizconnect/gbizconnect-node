@@ -23,4 +23,10 @@ if [ $status != 0 ] ; then
     err "ファイル権限ユーザGIDを.envに書き込めませんでした。" $status
     exit 1
 fi
+set_debug_redirect_command_string_append echo "dns=${dns}" .env
+status=$?
+if [ $status != 0 ] ; then
+    err "DNSの設定dnsを.envに書き込めませんでした。" $status
+    exit 1
+fi
 out "nodeの環境変数設定を行いました。"
