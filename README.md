@@ -69,7 +69,7 @@ https://github.com/ilagnev/docker-alpine-nginx-lua
 ## gBizConnect関連資料
   * [gBizConnect ガイドライン](docs/gBizConnect_guidelines.pdf)
   * [gBizConnect 利用規約](docs/gBizConnect_Riyoukiyaku.pdf)  
-  * [gBizConnect プライバシーポリシー](docs/gBizConnect_privacypolicy.md)
+  * [gBizConnect プライバシーポリシー](docs/gBizConnect_privacy.md)
   * [gBizConnect セキュリティ管理方針](docs/gBizConnect_security.pdf)
   * [gBizConnect よくあるお問い合わせ](docs/gBizConnect_faq.pdf)
 
