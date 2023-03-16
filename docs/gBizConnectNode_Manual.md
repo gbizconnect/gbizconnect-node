@@ -191,51 +191,45 @@ $sudo bash /home/ubuntu/node/build.sh
 〇結果
 
 ```
-Creating network "node_edge-network" with the default driver
-Pulling swaggerui (gbizconnect/gbizconnect-node-swaggerui:v1.0.2)...
-v1.0.2: Pulling from gbizconnect/gbizconnect-node-swaggerui
-Digest: sha256:c89001c8ebf7d6d4f3f08ba449c7d7124e1df8f903a8a207a6a2f8bec1b4f390
-Status: Downloaded newer image for gbizconnect/gbizconnect-node-swaggerui:v1.0.2
-Pulling swaggereditor (gbizconnect/gbizconnect-node-swaggereditor:v1.0.2)...
-v1.0.2: Pulling from gbizconnect/gbizconnect-node-swaggereditor
-Digest: sha256:29349387d9b2ee71093e0b992648286e58589f4c99055d45e891aeea8bbb9dd1
-Status: Downloaded newer image for gbizconnect/gbizconnect-node-swaggereditor:v1.0.2
-Pulling edge-module (gbizconnect/gbizconnect-node-nginx:v1.0.2)...
-v1.0.2: Pulling from gbizconnect/gbizconnect-node-nginx
-Digest: sha256:dd7128db59f78d9a61915d48f352b3c2537b80ab7f57df9b488c2bf908c1c99c
-Status: Downloaded newer image for gbizconnect/gbizconnect-node-nginx:v1.0.2
-Pulling jsonserver (gbizconnect/gbizconnect-node-jsonserver:v1.0.2)...
-v1.0.2: Pulling from gbizconnect/gbizconnect-node-jsonserver
-Digest: sha256:7ebe2a188528fa57b8d721d376b60780d89f52e69996248a2a93bd48566b1a0d
-Status: Downloaded newer image for gbizconnect/gbizconnect-node-jsonserver:v1.0.2
-Pulling config-php-script (gbizconnect/gbizconnect-node-config-php-script:v1.0.2)...
-v1.0.2: Pulling from gbizconnect/gbizconnect-node-config-php-script
-Digest: sha256:7411568689ae3c2dde351c4bff5d6f3e564167af28987648b7bd892397b54f7b
-Status: Downloaded newer image for gbizconnect/gbizconnect-node-config-php-script:v1.0.2
-Pulling config-nginx-php (gbizconnect/gbizconnect-node-config-nginx-php:v1.0.2)...
-v1.0.2: Pulling from gbizconnect/gbizconnect-node-config-nginx-php
-Digest: sha256:517f0284e230eb4f26517d2d8eef632a5cd1e7378fce2f6614c3cb2726d750d6
-Status: Downloaded newer image for gbizconnect/gbizconnect-node-config-nginx-php:v1.0.2
-Pulling td-agent (gbizconnect/gbizconnect-node-td-agent:v1.0.2)...
-v1.0.2: Pulling from gbizconnect/gbizconnect-node-td-agent
-Digest: sha256:b149d6d4d766cec85052eb1381aaf5f85bda585171a8379fa39d99f9307bb8ca
-Status: Downloaded newer image for gbizconnect/gbizconnect-node-td-agent:v1.0.2
-Creating node_swaggerui_1         ... done
-Creating node_td-agent_1          ... done
-Creating node_swaggereditor_1     ... done
-Creating node_jsonserver_1        ... done
-Creating node_config-php-script_1 ... done
-Creating node_edge-module_1       ... done
-Creating node_config-nginx-php_1  ... done
-          Name                        Command               State               Ports
---------------------------------------------------------------------------------------------------
-node_config-nginx-php_1    /docker-entrypoint.sh /bin ...   Up      80/tcp, 0.0.0.0:8080->8080/tcp
-node_config-php-script_1   docker-php-entrypoint /bin ...   Up      9000/tcp
-node_edge-module_1         /bin/sh -c usermod -u 1000 ...   Up      0.0.0.0:443->443/tcp, 80/tcp
-node_jsonserver_1          sh /run.sh -r routes.json        Up      3000/tcp
-node_swaggereditor_1       /docker-entrypoint.sh /bin ...   Up      80/tcp, 8080/tcp, 8081/tcp
-node_swaggerui_1           /docker-entrypoint.sh /bin ...   Up      80/tcp, 8080/tcp
-node_td-agent_1            td-agent -c /etc/td-agent/ ...   Up      0.0.0.0:24224->24224/tcp
+(略)
+Network node_edge-network  Creating
+Network node_edge-network  Created
+Container node-swaggereditor-1  Creating
+Container node-jsonserver-1  Creating
+Container node-config-php-script-1  Creating
+Container node-td-agent-1  Creating
+Container node-swaggerui-1  Creating
+Container node-config-php-script-1  Created
+Container node-config-nginx-php-1  Creating
+Container node-td-agent-1  Created
+Container node-swaggerui-1  Created
+Container node-jsonserver-1  Created
+Container node-swaggereditor-1  Created
+Container node-edge-module-1  Creating
+Container node-config-nginx-php-1  Created
+Container node-edge-module-1  Created
+Container node-swaggerui-1  Starting
+Container node-swaggereditor-1  Starting
+Container node-config-php-script-1  Starting
+Container node-td-agent-1  Starting
+Container node-jsonserver-1  Starting
+Container node-swaggerui-1  Started
+Container node-swaggereditor-1  Started
+Container node-edge-module-1  Starting
+Container node-config-php-script-1  Started
+Container node-config-nginx-php-1  Starting
+Container node-td-agent-1  Started
+Container node-jsonserver-1  Started
+Container node-edge-module-1  Started
+Container node-config-nginx-php-1  Started
+NAME                       COMMAND                  SERVICE             STATUS              PORTS
+node-config-nginx-php-1    "/docker-entrypoint.…"   config-nginx-php    running             0.0.0.0:8080->8080/tcp, :::8080->8080/tcp
+node-config-php-script-1   "docker-php-entrypoi…"   config-php-script   running             9000/tcp
+node-edge-module-1         "/bin/sh -c 'usermod…"   edge-module         running             0.0.0.0:443->443/tcp, :::443->443/tcp
+node-jsonserver-1          "sh /run.sh -r route…"   jsonserver          running             3000/tcp
+node-swaggereditor-1       "/docker-entrypoint.…"   swaggereditor       running             8080-8081/tcp
+node-swaggerui-1           "/docker-entrypoint.…"   swaggerui           running             8080/tcp
+node-td-agent-1            "td-agent -c /etc/td…"   td-agent            running             0.0.0.0:24224->24224/tcp, :::24224->24224/tcp
 ```
 
 ※結果の後半の「State」 「Up」になっていればコンテナが正常に起動しています。
