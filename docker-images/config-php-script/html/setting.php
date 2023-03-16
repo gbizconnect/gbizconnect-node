@@ -1,4 +1,5 @@
 <?php
+header_remove('X-Powered-By');
 $msg = "　";
 
 //例外処理

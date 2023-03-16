@@ -16,12 +16,12 @@
 ### 1.2.事前準備
 　gBizConnect Nodeの導入に必要なものを下記に示します。
 
-* 事前に用意が必要なもの　<br>(関連：3.1.証明書の配置)
+* 事前に用意が必要なもの　<br>(関連：「[2.gBizConnect Nodeの導入・起動](#2gBizConnect-Nodeの導入・起動)」)
     * CA（認証局）が発行したサーバ証明書（PEM形式）
     * サーバ証明書の秘密鍵（PEM形式）
 
 * 事前に準備が必要な設定
-    * 全員が必要な準備　<br>(関連：3.gBizConnect Nodeの疎通確認)
+    * 全員が必要な準備　<br>(関連：「[3.gBizConnect Nodeの疎通確認](#3gBizConnect-Nodeの疎通確認)」)
      * 外部接続のネットワーク・セキュリティの設定
      * 1.5.事前に必要な設定
 
@@ -347,7 +347,6 @@ curl https://localhost/communication/status
 |8|メールアドレス|登録したいシステムの管理者のメールアドレス|
 |9|メールアドレス再入力|メールアドレスの確認|
 |10|電話番号|登録したいシステムの管理者の電話番号|
-|11|システム情報の公開|登録したいシステムの公開/非公開の設定|
 
 <br>
 
@@ -388,7 +387,7 @@ curl https://localhost/communication/status
  図5-1-2 APIを利用する画面
 </div>
 
-(3)表示された一覧からAPIを利用したいシステムを選択します。
+(3)表示された一覧から利用したいAPIを選択します。
 
 <div align="center">
 <img src="img/api_riyou3.png" alt="APIを探す画面" title="APIを探す画面">
@@ -399,31 +398,39 @@ curl https://localhost/communication/status
 (4)選択したAPIのメソッド一覧から使用したいAPIメソッドを選択します。
 
 <div align="center">
-<img src="img/api_riyou4.png" alt="API検索画面" title="API検索画面">
+<img src="img/api_riyou4.png" alt="APIを詳しく見る画面" title="APIを詳しく見る画面">
 
- 図5-1-4 API検索画面
+ 図5-1-4 APIを詳しく見る画面
 </div>
 
-(5)図5-1-5のような画面が表示され、APIの利用に必要な情報を入力します。
+(5)複数システムを登録した場合は図5-1-5のような子画面が表示され、API連携の対象とするシステムを選択します。1システムのみを登録した場合は、子画面は表示されずに(6)に進みます。
+
+<div align="center">
+<img src="img/api_riyou8.png" alt="APIを詳しく見る画面(子画面)" title="APIを詳しく見る画面(子画面)">
+
+ 図5-1-5 APIを詳しく見る画面(子画面)
+</div>
+
+(6)図5-1-6のような画面が表示され、APIの利用に必要な情報を入力し「申請内容を確認する」を選択します。
 
 <div align="center">
 <img src="img/api_riyou5.png" alt="API利用申請画面" title="API利用申請画面">
 
- 図5-1-5 API利用申請画面
+ 図5-1-6 API利用申請画面
 </div>
 
-(6)図5-1-6の画面で「申請する」を選択し、図5-1-7のようなAPI利用申請完了画面が表示されます。
+(7)図5-1-7の画面で「申請する」を選択し、図5-1-7のようなAPI利用申請完了画面が表示されます。
 
 <div align="center">
 <img src="img/api_riyou6.png" alt="API利用申請確認画面" title="API利用申請確認画面">
 
- 図5-1-6 API利用申請確認画面
+ 図5-1-7 API利用申請確認画面
 </div>
 
 <div align="center">
 <img src="img/api_riyou7.png" alt="API利用申請完了画面" title="API利用申請完了画面">
 
- 図5-1-7 API利用申請完了画面
+ 図5-1-8 API利用申請完了画面
 </div>
 
 ### 5.2.(任意)gBizConnectの都度同意の設定
@@ -690,16 +697,18 @@ youkyu_nonce：リダイレクトで取得したパラメータ(nonce)
  図6-1-3 API登録画面
 </div>
 
-「エンドポイントURI」は次の通りに設定してください。
+「APIエンドポイント」は次の通りに設定してください。
 
-〇エンドポイントURI入力例
+〇APIエンドポイント入力例
 
 ```
 登録したいAPI：https://node.example.jp/v1/corporations/1234567890123
-エンドポイントURI：https://node.example.jp/v1/corporations/{corporate_number}
+APIエンドポイント：https://node.example.jp/v1/corporations/{corporate_number}
 ```
 
-※エンドポイントURIで「{}」表記は任意の値を表します。
+※変数は{}で囲んだ上、正規表現は使用不可となります。
+
+「API情報の公開」を公開にした場合、APIを探す画面においてシステム情報(システム名・運営組織名)も公開されます。
 
 (4)図6-1-4の画面で「登録する」を選択し、図6-1-5の画面が表示されます。
 
@@ -759,9 +768,9 @@ http://www.ecma-international.org/ecma-262/5.1/#sec-15.10.1
 
 〇設定例
 
-・API登録(エンドポイントURI)
+・API登録(APIエンドポイント)
 ```
-エンドポイントURL：https://node.example.jp/v1/corporations/{corporate_number}
+APIエンドポイント：https://node.example.jp/v1/corporations/{corporate_number}
 ```
 
 ・APIマッピング
@@ -816,7 +825,7 @@ NodeAPIエンドポイントパス抽出正規表現：/v1/corporations/([0-9]+)
   図6-2-7 システム一覧画面
  </div>
 
- (3)図6-2-8のNode設定画面(基本設定)で「データ提供範囲設定」の項目で提供するデータの範囲をチェックし、「設定を保存」を選択します。
+ (3)図6-2-8のNode設定画面(基本設定)で「データ提供範囲設定」の項目で提供するデータの範囲をチェックし、「設定を保存する」を選択します。
 
  <div align="center">
  <img src="img/tudodoui_teikyo_set4.png" alt="Node設定画面(基本設定)" title="Node設定画面(基本設定)">
@@ -968,7 +977,7 @@ https://node.example.jp[:port]/swaggerui/
  図6-3-1 メニュー画面
 </div>
 
-(2)図6-3-2のAPI一覧画面で編集したいAPI情報で、「編集」を選択します。
+(2)図6-3-2のAPI一覧画面で、編集したいAPI情報の「編集」を選択します。
 
 <div align="center">
 <img src="img/api_swagger_set2.png" alt="API一覧画面" title="API一覧画面">
@@ -1069,9 +1078,26 @@ https://node.example.jp[:port]/swaggerui/
 
 　この項目はデータ要求者の説明と同様のため、「[5.2.1gBizConnectの都度同意の流れ](#521gBizConnectの都度同意の流れ)」をご参照ください。
 
-### 6.5.2.Node設定ファイルの取得、gBizConnect Nodeへ反映
+### 6.6.Node設定ファイルの取得、gBizConnect Nodeへ反映
 
 　この項目はデータ要求者の設定の手順と同様のため、「[5.3.Node設定ファイルをgBizConnect Nodeへ反映](#53Node設定ファイルをgBizConnect-Nodeへ反映)」をご参照ください。
+
+　ただし、「[6.1.gBizConnect PortalでAPI登録](#61gbizconnect-portalでapi登録)」で登録したAPIエンドポイントに以下のいずれかを含む場合は、正規表現と見なされ正常にデータ連携ができないため、「[7.9.Node設定ファイルにおけるAPIエンドポイントのエスケープ](#79Node設定ファイルにおけるAPIエンドポイントのエスケープ)」を実施してください。
+
+〇エスケープ対象文字列
+
+```
+・(?!【xxx】)
+・(【xxx】)
+・{【num】,}
+・{【num】,【num】}
+・(?:【xxx】)
+・(?=【xxx】)
+・[^【xxx】]
+
+【xxx】　任意の文字列
+【num】　任意の数字
+```
 
 ## 7.補足事項
 
@@ -1362,6 +1388,29 @@ curl -u UserID:PassWord -X POST \
  * https://node.youkyu.example.jp ：ノードを導入したホストのドメイン
  * https://node.teikyou.example.jp ：API利用申請したNodeのホストのドメイン
  * /v1/example ：API利用申請したAPI
+
+### 7.9.Node設定ファイルにおけるAPIエンドポイントのエスケープ
+
+ 本項目はNode設定ファイルにおけるAPIエンドポイントのエスケープを実施する方法について説明します。
+
+ (1)「[5.3.Node設定ファイルをgBizConnect Nodeへ反映](#53Node設定ファイルをgBizConnect-Nodeへ反映)」(2)でダウンロードしたNode設定ファイルを開きます。
+
+ (2)下記のように該当記号部分をエスケープします。
+
+〇APIエンドポイントに`https://node.example.jp/v1/(?!example)/{corporate_number}`を入力した場合の例
+```
+(略)
+ "authorized_client_list" : [
+   {
+     "client_id" : "teikyou_client_id",
+     "endpoint" : [
+       {
+         "uri" : "^https://node\\.example\\.jp/v1/\\(\\?\\!example\\)/([^/]+)$",
+         "method" : "GET"
+       },
+(略)
+```
+(3)「[5.3.Node設定ファイルをgBizConnect Nodeへ反映](#53Node設定ファイルをgBizConnect-Nodeへ反映)」(3)以降を実施します。
 
 ### 8.FAQ
 

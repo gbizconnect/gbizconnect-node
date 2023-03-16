@@ -59,7 +59,7 @@ services:
       - NODE_PORT=${NODE_PORT}
 
   swaggereditor:
-    image: gbizconnect/gbizconnect-node-swaggereditor:v1.0.2
+    image: gbizconnect/gbizconnect-node-swaggereditor:v1.1.0
 #    ports:
 #      - 8081:8081
     networks:
@@ -89,7 +89,7 @@ services:
     init: true
 
   config-nginx-php:
-    image: gbizconnect/gbizconnect-node-config-nginx-php:v1.0.2
+    image: gbizconnect/gbizconnect-node-config-nginx-php:v1.0.3
     depends_on:
       - config-php-script
     ports:
@@ -105,7 +105,7 @@ services:
       && nginx -g 'daemon off;'"
 
   config-php-script:
-    image: gbizconnect/gbizconnect-node-config-php-script:v1.0.2
+    image: gbizconnect/gbizconnect-node-config-php-script:v1.0.3
 #    ports:
 #      - 9000:9000
     command: >
