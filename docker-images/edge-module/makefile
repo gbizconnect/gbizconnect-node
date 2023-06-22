@@ -1,6 +1,6 @@
 NAME	= edge-module
 IMAGE	= gbizconnect/gbizconnect-node-nginx
-VERSION	= v1.0.2
+VERSION	= v1.0.3
 
 # make build
 construct: build

@@ -1,8 +1,8 @@
-js_set $js_oauth_token_endpoint getOAuth2TokenEndpoint;
-js_set $js_oauth_token_introspect_endpoint getOAuth2TokenIntrospectEndpoint;
-js_set $js_call_system_api get_call_system_api;
-js_set $js_call_system_api_authorization getCallSystemApiAuthorization;
-js_set $js_call_system_api_api_key getCallSystemApiApiKey;
+js_set $js_oauth_token_endpoint nginx.getOAuth2TokenEndpoint;
+js_set $js_oauth_token_introspect_endpoint nginx.getOAuth2TokenIntrospectEndpoint;
+js_set $js_call_system_api nginx.get_call_system_api;
+js_set $js_call_system_api_authorization nginx.getCallSystemApiAuthorization;
+js_set $js_call_system_api_api_key nginx.getCallSystemApiApiKey;
 
 map $http_authorization $access_token { 
     "~*^bearer (.*)$" $1;
@@ -134,7 +134,7 @@ server {
             end
         }
 
-        js_content tsudodoi;
+        js_content nginx.tsudodoi;
     }
 
     #==========================
@@ -170,7 +170,7 @@ server {
         # add_header Access-Control-Allow-Origin '*' always;
 
         # アクセストークン要求
-        js_content get_access_token;
+        js_content nginx.get_access_token;
     }
    
     #==========================
@@ -235,14 +235,14 @@ server {
         auth_request_set $token_response $sent_http_token_response;
 
         set $x_call_api_uri $request_uri;
-        js_content call_system_api_init;
+        js_content nginx.call_system_api_init;
     }
     
     location = /_oauth2_token_introspection { 
         # This location implements an auth_request server that uses the JavaScript 
         # module to perform the token introspection request. 
         internal;
-        js_content introspectAccessToken;
+        js_content nginx.introspectAccessToken;
     } 
     
     #データ提供システムを呼び出す
@@ -305,7 +305,7 @@ server {
 
     location = /communication/status {
         if ( $isAllowedOnlyPrivateIPs = "disable" ){ return 444; }
-        js_content checkAuthorizationServer;
+        js_content nginx.checkAuthorizationServer;
     }
     
     location = /healthcheck {
@@ -315,12 +315,12 @@ server {
     error_page 400 401 402 403 404 405 406 407 408 409 410 411 412 413 413 414 415 416 417 418 421 422 423 424 425 426 428 429 431 451 /40x.json;
     location /40x.json {
         internal;
-        js_content getClientErrorResponse;
+        js_content nginx.getClientErrorResponse;
     }
 
     error_page 500 501 502 503 504 505 506 507 508 510 511 /50x.json;
     location /50x.json {
         internal;
-        js_content  getServerErrorResponse;
+        js_content nginx.getServerErrorResponse;
     }
 }

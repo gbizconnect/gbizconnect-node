@@ -2,7 +2,7 @@ version: '3'
 services:
 
   edge-module:
-    image: gbizconnect/gbizconnect-node-nginx:v1.0.2
+    image: gbizconnect/gbizconnect-node-nginx:v1.0.3
     depends_on:
       - swaggerui
       - swaggereditor
@@ -39,7 +39,7 @@ services:
       - dns=${dns}
 
   swaggerui:
-    image: gbizconnect/gbizconnect-node-swaggerui:v1.0.2
+    image: gbizconnect/gbizconnect-node-swaggerui:v1.0.3
 #    ports:
 #      - 8080:8080
     networks:
@@ -59,7 +59,7 @@ services:
       - NODE_PORT=${NODE_PORT}
 
   swaggereditor:
-    image: gbizconnect/gbizconnect-node-swaggereditor:v1.1.0
+    image: gbizconnect/gbizconnect-node-swaggereditor:v1.1.1
 #    ports:
 #      - 8081:8081
     networks:
@@ -71,7 +71,7 @@ services:
       $$NODE_PORT
       '< /usr/share/nginx/html/index.html.template
       > /usr/share/nginx/html/index.html
-      && sh /usr/share/nginx/docker-run.sh;"
+      && sh /docker-entrypoint.sh nginx -g 'daemon off;'"
     environment:
       - NODE_DOMAIN=${NODE_DOMAIN}
       - NODE_PORT=${NODE_PORT}
@@ -89,7 +89,7 @@ services:
     init: true
 
   config-nginx-php:
-    image: gbizconnect/gbizconnect-node-config-nginx-php:v1.0.3
+    image: gbizconnect/gbizconnect-node-config-nginx-php:v1.0.4
     depends_on:
       - config-php-script
     ports:
@@ -105,7 +105,7 @@ services:
       && nginx -g 'daemon off;'"
 
   config-php-script:
-    image: gbizconnect/gbizconnect-node-config-php-script:v1.0.3
+    image: gbizconnect/gbizconnect-node-config-php-script:v1.0.4
 #    ports:
 #      - 9000:9000
     command: >

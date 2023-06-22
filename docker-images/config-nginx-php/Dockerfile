@@ -1,3 +1,3 @@
-FROM nginx:1.22.1-alpine
+FROM nginx:1.24.0-alpine3.17
 
 COPY nginx /etc/nginx/

@@ -1,3 +1,3 @@
-FROM swaggerapi/swagger-ui:v4.10.0
+FROM swaggerapi/swagger-ui:v4.19.0
 
 COPY html /usr/share/nginx/html

@@ -1,6 +1,6 @@
 NAME	= swaggerui
 IMAGE	= gbizconnect/gbizconnect-node-swaggerui
-VERSION	= v1.0.2
+VERSION	= v1.0.3
 
 # make build
 construct: build

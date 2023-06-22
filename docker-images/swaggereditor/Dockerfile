@@ -1,4 +1,4 @@
-FROM swaggerapi/swagger-editor:v4.6.1	
+FROM swaggerapi/swagger-editor:v4.9.2	
 	
 COPY html /usr/share/nginx/html/
 

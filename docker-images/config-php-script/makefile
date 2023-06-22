@@ -1,6 +1,6 @@
 NAME	= config-php-script
 IMAGE	= gbizconnect/gbizconnect-node-config-php-script
-VERSION	= v1.0.3
+VERSION	= v1.0.4
 
 # make build
 construct: build
