@@ -84,7 +84,7 @@ server {
     }
 
     location /jsonserver/ {
-        proxy_pass http://jsonserver/;
+        proxy_pass http://jsonserver:3000/;
         include conf.d/add-header-for-screen.conf;
     }
     #============================================================================

@@ -1,6 +1,6 @@
 NAME	= jsonserver
 IMAGE	= gbizconnect/gbizconnect-node-jsonserver
-VERSION	= v1.0.2
+VERSION	= v1.0.3
 
 # make build
 construct: build

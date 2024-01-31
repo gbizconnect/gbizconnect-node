@@ -4,7 +4,8 @@ LABEL version="gbizconnect.22.01"
 
 RUN microdnf -y update && \
     microdnf -y install yum-utils && \
-    microdnf clean all
+    microdnf clean all && \
+    microdnf upgrade
 
 RUN rpm --import https://packages.treasuredata.com/GPG-KEY-td-agent
 RUN echo -e "\n\
@@ -14,6 +15,7 @@ baseurl=http://packages.treasuredata.com/3/redhat/\$releasever/\$basearch\n\
 gpgcheck=1\n\
 gpgkey=https://packages.treasuredata.com/GPG-KEY-td-agent\n\
 " > /etc/yum.repos.d/td.repo
+
 
 RUN microdnf install -y td-agent && \
     td-agent-gem install fluent-plugin-secure-forward

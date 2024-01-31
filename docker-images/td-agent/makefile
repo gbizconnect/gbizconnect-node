@@ -1,6 +1,6 @@
 NAME	= td-agent
 IMAGE	= gbizconnect/gbizconnect-node-td-agent
-VERSION	= v1.0.2
+VERSION	= v1.0.3
 
 # make build
 construct: build

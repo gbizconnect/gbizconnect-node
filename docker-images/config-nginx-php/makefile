@@ -1,6 +1,6 @@
 NAME	= config-nginx-php
 IMAGE	= gbizconnect/gbizconnect-node-config-nginx-php
-VERSION	= v1.0.4
+VERSION	= v1.0.5
 
 # make build
 construct: build

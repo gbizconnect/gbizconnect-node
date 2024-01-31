@@ -1,6 +1,6 @@
 NAME	= swaggereditor
 IMAGE	= gbizconnect/gbizconnect-node-swaggereditor
-VERSION	= v1.1.1
+VERSION	= v1.1.2
 
 # make build
 construct: build

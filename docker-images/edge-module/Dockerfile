@@ -195,6 +195,12 @@ RUN GPG_KEYS=B0F4253373F8F6F510D42178520A9993A1C052F8 \
 	&& apk add --no-cache ca-certificates && update-ca-certificates \
 	&& apk add shadow
 
+RUN apk --no-cache add tzdata \
+	&& cp /usr/share/zoneinfo/Asia/Tokyo /etc/localtime \
+	&& apk del tzdata
+
+RUN apk update && apk upgrade 
+  
 	COPY nginx /etc/nginx
 	COPY html /usr/share/nginx/html
 	COPY log /var/log/nginx

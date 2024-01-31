@@ -381,7 +381,8 @@ curl https://localhost/communication/status
  図5-1-2 APIを利用する画面
 </div>
 
-(3)表示された一覧から利用したいAPIを選択します。
+(3)表示された一覧から利用したいAPIを選択します。<br>
+　※API名・概要や複数のデータカテゴリでAPIを検索することができます。
 
 <div align="center">
 <img src="img/api_riyou3.png" alt="APIを探す画面" title="APIを探す画面">
@@ -434,6 +435,7 @@ curl https://localhost/communication/status
 #### 5.2.1gBizConnectの都度同意の流れ
 
 都度同意の流れは次の通りです。
+スコープの詳細は「[Node仕様書：3.2. gBizConnectのスコープ ](https://github.com/gbizconnect/gbizconnect-node/blob/master/docs/gBizConnectNode.md#32-gbizconnectのスコープ)」を参照してください。
 
 <div align="center">
 
@@ -456,11 +458,11 @@ curl https://localhost/communication/status
 
 |No.|対象ユーザー|システムで実装が必要な内容|対応する手順|
 |:-|:-|:-|:-|
-|1|データ要求者|データ要求者システムから、データ要求者システムのスコープ選択画面取得APIを利用しスコープ選択画面を呼び出す|[5.5.都度同意によるシステム間連携](#55都度同意によるシステム間連携)|
+|1|データ要求者|データ要求システムから、データ要求システムのスコープ選択画面取得APIを利用しスコープ選択画面を呼び出す|[5.5.都度同意によるシステム間連携](#55都度同意によるシステム間連携)|
 |2|データ要求者|スコープ選択画面で取得するデータのスコープを選択|[5.5.都度同意によるシステム間連携](#55都度同意によるシステム間連携)|
 |3|データ要求者|gBizIDへログイン画面が表示されるため、認証情報を入力し認証|[5.5.都度同意によるシステム間連携](#55都度同意によるシステム間連携)|
-|4|データ要求者|同意画面で同意すると、データ要求者Nodeから都度同意のシステム間連携に必要な情報がリダイレクトがされる|[5.5.都度同意によるシステム間連携](#55都度同意によるシステム間連携)|
-|5|データ要求者|リダイレクトされた情報を利用し、データ要求者システムからデータ要求者Nodeの都度同意APIを呼び出すことで、Node間のAPI連携が行われ、データ要求者システムにスコープで絞り込まれた内容が返却される。|[5.5.都度同意によるシステム間連携](#55都度同意によるシステム間連携)|
+|4|データ要求者|同意画面で同意すると、データ要求システムNodeから都度同意のシステム間連携に必要な情報がリダイレクトがされる|[5.5.都度同意によるシステム間連携](#55都度同意によるシステム間連携)|
+|5|データ要求者|リダイレクトされた情報を利用し、データ要求システムからデータ要求システムNodeの都度同意APIを呼び出すことで、Node間のAPI連携が行われ、データ要求システムにスコープで絞り込まれた内容が返却される。|[5.5.都度同意によるシステム間連携](#55都度同意によるシステム間連携)|
 
 都度同意の画面遷移のイメージは次のとおりです。
 <div align="center">
@@ -610,7 +612,7 @@ curl -u UserID:PassWord -X POST \
 この項目は都度同意によるシステム間連携する場合の手順となります。事前同意によるシステム間連携は「[5.4.事前同意によるシステム間連携](#54事前同意によるシステム間連携)」を参照してください。
 また下記の手順で記載するgBizConnect NodeのAPIの詳細は「[Node仕様書：2.2. API一覧](https://github.com/gbizconnect/gbizconnect-node/blob/master/docs/gBizConnectNode.md#22-api一覧)」を合わせてご参照ください。
 
-(1)データ要求者システムからデータ提供者Nodeの下記のパラメータを指定しAPIを呼び出してください。
+(1)データ要求システムからデータ提供システムNodeの下記のパラメータを指定しAPIを呼び出してください。
 
 〇呼び出し対象API
 
@@ -627,16 +629,17 @@ state *
 ※*：呼び出し側システムで生成するランダム文字列（CSRF対策に使用）
 
 (2)(1)のAPIを呼び出すことで、スコープ選択画面表示されるので、取得したいデータのスコープを選択する。<br>
+スコープの詳細は「[Node仕様書：3.2. gBizConnectのスコープ ](https://github.com/gbizconnect/gbizconnect-node/blob/master/docs/gBizConnectNode.md#32-gbizconnectのスコープ)」を参照してください。<br>
 
-(3)gBizID認証画面が表示されるので、ログインID、パスワードを入力する。<br>
+(3)gBizID認証画面が表示されるので、ログインID、スコープの詳細はパスワードを入力する。<br>
 
 (4)(3)で認証が成功すると同意画面が表示されるので、同意する。<br>
 
-(5)(4)で同意すると、データ要求者Nodeはブラウザからデータ要求者システムにパラメータ(client_id、state、nonce)付きでリダイレクトさせる。<br>
-　　その際、データ要求者システムでパラメータ(state)の値が(1)で渡したものと⼀致するかチェックする。<br>
+(5)(4)で同意すると、データ要求システムNodeはブラウザからデータ要求システムにパラメータ(client_id、state、nonce)付きでリダイレクトさせる。<br>
+　　その際、データ要求システムでパラメータ(state)の値が(1)で渡したものと⼀致するかチェックする。<br>
 
-(6)(5)で確認ができたら、データ要求者システムからデータ要求者Nodeの都度同意リクエスト受付APIを呼び出す。<br>
-　リダイレクトのパラメータ(client_id)の値でデータ要求者システムで選択したデータ提供者Nodeを判定して呼び出すAPIリクエストを作成する。<br>
+(6)(5)で確認ができたら、データ要求システムからデータ要求システムNodeの都度同意リクエスト受付APIを呼び出す。<br>
+　リダイレクトのパラメータ(client_id)の値でデータ要求システムで選択したデータ提供システムNodeを判定して呼び出すAPIリクエストを作成する。<br>
 　また、パラメータnonceを都度同意リクエストパラメータに追加し、gBizConnect Nodeの都度同意リクエスト受付APIを呼び出す。
 
 〇コマンド例
@@ -654,7 +657,7 @@ curl -u admin:password -X POST  'https://example_youkyu_node.com/v1/reception_ts
 〇コマンド例の修正箇所
 
 ```
-https://example_youkyu_node.com：データ提供者Nodeのドメイン、パラメータ(client_id)の値が一致するもの。
+https://example_youkyu_node.com：データ提供システムNodeのドメイン、パラメータ(client_id)の値が一致するもの。
 youkyu_nonce：リダイレクトで取得したパラメータ(nonce)
 ```
 
@@ -777,7 +780,7 @@ NodeAPIエンドポイントパス抽出正規表現：/v1/corporations/([0-9]+)
 ・上記例でAPIマッピングによる変換が行われた結果。
 
 ```
-データ要求者Nodeからのリクエスト：https://node.example.jp/v1/corporations/1234567890123
+データ要求システムNodeからのリクエスト：https://node.example.jp/v1/corporations/1234567890123
 データ提供システムへのリクエスト：https://app.datastore.jp/corporate/v1/corporate_number/1234567890123
 ```
 
@@ -845,7 +848,7 @@ NodeAPIエンドポイントパス抽出正規表現：/v1/corporations/([0-9]+)
 
 　データ提供システムの法人標準データの形式に準拠している場合は不要です。<br>
 　法人標準データの形式に準拠していない場合は以下の設定を実施してください。<br>
-　また標準データ変換の詳細な説明は、「[Node仕様書：2.4.標準データマッピング機能](https://github.com/gbizconnect/gbizconnect-node/blob/master/docs/gBizConnectNode.md#24標準データマッピング機能)」を参照してください。
+　また法人標準データ変換の詳細な説明は、「[Node仕様書：2.4.標準データマッピング機能](https://github.com/gbizconnect/gbizconnect-node/blob/master/docs/gBizConnectNode.md#24標準データマッピング機能)」を参照してください。
 
 (1)「[gBizConnectに参加する](https://portal.gbiz-connect.go.jp/menu_node)」から「APIを公開する」を選択します。
 
@@ -863,7 +866,7 @@ NodeAPIエンドポイントパス抽出正規表現：/v1/corporations/([0-9]+)
  図6-2-12 システム一覧画面
 </div>
 
-(3)図6-2-13のNode設定画面(基本設定)で標準データ変換①または標準データ変換②または標準データ変換③を選択します。
+(3)図6-2-13のNode設定画面(基本設定)で法人標準データ変換①または法人標準データ変換②または法人標準データ変換③を選択します。
 
 <div align="center">
 <img src="img/hyouzyun_data_set3.png" alt="Node設定画面(基本設定)" title="Node設定画面(基本設定)">
@@ -874,9 +877,9 @@ NodeAPIエンドポイントパス抽出正規表現：/v1/corporations/([0-9]+)
 (4)図6-2-14の設定画面で必要な項目を入力し、「設定を保存する」を選択します。
 
 <div align="center">
-<img src="img/hyouzyun_data_set4.png" alt="Node設定画面(標準データ変換①)" title="Node設定画面(標準データ変換①)">
+<img src="img/hyouzyun_data_set4.png" alt="Node設定画面(法人標準データ変換①)" title="Node設定画面(法人標準データ変換①)">
 
- 図6-2-14 Node設定画面(標準データ変換①)
+ 図6-2-14 Node設定画面(法人標準データ変換①)
 </div>
 
 入力例について説明します。下記の通り、データ提供システムから取得できる法人データを法人標準データに変換したいとします。
@@ -896,7 +899,7 @@ NodeAPIエンドポイントパス抽出正規表現：/v1/corporations/([0-9]+)
 }
 ```
 
-〇標準データ変換した結果
+〇標準データ変換をした結果
 
 ```
 {
@@ -916,7 +919,7 @@ NodeAPIエンドポイントパス抽出正規表現：/v1/corporations/([0-9]+)
 }
 ```
 
-表6-2-2の通りに図6-2-14 Node設定画面(標準データ変換①)の各項目に入力します。
+表6-2-2の通りに図6-2-14 Node設定画面(法人標準データ変換①)の各項目に入力します。
 
 <div align="center">
 
@@ -937,17 +940,17 @@ NodeAPIエンドポイントパス抽出正規表現：/v1/corporations/([0-9]+)
 (5)図6-2-15の設定画面で必要な項目を入力し、「設定を保存する」を選択します。
 
 <div align="center">
-<img src="img/hyouzyun_data_set5.png" alt="Node設定画面(標準データ変換②)" title="Node設定画面(標準データ変換②)">
+<img src="img/hyouzyun_data_set5.png" alt="Node設定画面(法人標準データ変換②)" title="Node設定画面(法人標準データ変換②)">
 
- 図6-2-15 Node設定画面(標準データ変換②)
+ 図6-2-15 Node設定画面(法人標準データ変換②)
 </div>
 
 (6)図6-2-16の設定画面で必要な項目を入力し、「設定を保存する」を選択します。
 
 <div align="center">
-<img src="img/hyouzyun_data_set6.png" alt="Node設定画面(標準データ変換③)" title="Node設定画面(標準データ変換③)">
+<img src="img/hyouzyun_data_set6.png" alt="Node設定画面(法人標準データ変換③)" title="Node設定画面(法人標準データ変換③)">
 
- 図6-2-16 Node設定画面(標準データ変換③)
+ 図6-2-16 Node設定画面(法人標準データ変換③)
 </div>
 
 ### 6.3.gBizConnect NodeのAPI仕様定義/公開の設定
@@ -1023,7 +1026,7 @@ https://node.example.jp[:port]/swaggerui/
 
 ### 6.4.API利用申請の承認
 
-この項目は、データ要求者システムからAPI利用申請が実施された場合にする手順となっております。
+この項目は、データ要求システムからAPI利用申請が実施された場合にする手順となっております。
 
 (1)図6-4-1のメニュー画面で「API利用承認」を選択します。
 
@@ -1312,10 +1315,10 @@ $NODE_HOME/node/edge-module/nginx/conf.d/api.header.conf
 ・編集箇所
 
 ```
-proxy_set_header X-API-ORIGINAL-KEY $js_call_system_api_api_key;
+proxy_set_header X-API-KEY $js_call_system_api_api_key;
 ```
 
-※X-API-ORIGINAL-KEYを独⾃ヘッダ名に変更してください。
+※X-API-KEYを独⾃ヘッダ名に変更してください。
 
 その後(8)を実施してください。
 
@@ -1331,9 +1334,9 @@ sudo docker exec -it node_edge-module_1 nginx -s reload　
 
 本項目は事前同意によるシステム間連携の際に使用するリクエストのパターンについて説明します。
 
-〇データ提供者Nodeのドメインが変更された場合
+〇データ提供システムNodeのドメインが変更された場合
 
-データ提供者Nodeのドメインが変更された場合でも、正しいドメインにアクセスできるようにクライアントIDからドメインを取得する方法です。
+データ提供システムNodeのドメインが変更された場合でも、正しいドメインにアクセスできるようにクライアントIDからドメインを取得する方法です。
 
 詳細は「[Node仕様書：5.4. データ提供システムNodeの名前解決機能](https://github.com/gbizconnect/gbizconnect-node/blob/master/docs/gBizConnectNode.md#54-データ提供システムnodeの名前解決機能)」を参照してください。
 
