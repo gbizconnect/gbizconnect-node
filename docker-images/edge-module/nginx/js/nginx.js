@@ -51,10 +51,12 @@ var RP_FLAG = {
     'PROVISION': 2,
 };
 
-/** GET:1 SET:2*/
-var GET_SET_FLAG = {
-    'GET': 1,
-    'SET': 2,
+/** SERVER_REQUEST:1 SERVER_RESPONSE:2 CLIENT_REQUEST:3 CLIENT_RESPONSE:4*/
+var CONVERT_CODE = {
+    'SERVER_REQUEST': 1,
+    'SERVER_RESPONSE': 2,
+    'CLIENT_REQUEST': 3,
+    'CLIENT_RESPONSE': 4,
 };
 
 /** クライアントエラーステータスコードメッセージ */
@@ -456,7 +458,7 @@ function check_requestBody(requestBody_json) {
                 parameterArray[i++] = "This body parameter does not include the [filename] key.";
             }
             // value null or 空
-            if (isEmpty (filename)) {
+            if (isEmpty(filename)) {
                 parameterArray[i++] = "The [filename] value contained in this body parameter is empty.";
             }
             // key なし
@@ -464,7 +466,7 @@ function check_requestBody(requestBody_json) {
                 parameterArray[i++] = "This body parameter does not include the [data] key.";
             }
             // value null or 空
-            if (isEmpty (data)) {
+            if (isEmpty(data)) {
                 parameterArray[i++] = "The [data] value contained in this body parameter is empty.";
             }
             // key なし
@@ -472,7 +474,7 @@ function check_requestBody(requestBody_json) {
                 parameterArray[i++] = "This body parameter does not include the [last_modified] key.";
             }
             // value null or 空
-            if (isEmpty (last_modified)) {
+            if (isEmpty(last_modified)) {
                 parameterArray[i++] = "The [last_modified] value contained in this body parameter is empty.";
             }
 
@@ -940,7 +942,6 @@ function getEndValues(obj, array, r) {
  */
 function setEndValues(obj, map, r) {
     Object.entries(map).forEach(function (entry) {
-        // entry = [key , value]
         var keyArray = entry[0].split(".");
         setEndValue(entry[1], obj, keyArray, r);
     });
@@ -1032,16 +1033,17 @@ function setEndValue(value, obj, array, r) {
 /**
  * URI変換
  * @private
+ * @param {number} rpFlg 
  * @param {Map<string,string>} map URI変換前キーMap
  * @param {string} extrUri 抽出URI
  * @param {string} replUri 置換URI
  * @param {Object} r リクエストオブジェクト
  */
-function convertUri(map, extrUri, replUri, r) {
+function convertUri(rpFlg, map, extrUri, replUri, r) {
     var mapUri = Object.keys(map)[0];
 
     if (typeof (mapUri) === "undefined") {
-        print_warnlog(r, RP_FLAG.PROVISION, "レスポンスデータに[" + extrUri + "]に該当するキーは存在しないため変換しません。");
+        print_warnlog(r, rpFlg, "[" + extrUri + "]に該当するキーは存在しないため変換しません。");
         return;
     }
 
@@ -1069,7 +1071,7 @@ function convertUri(map, extrUri, replUri, r) {
     } else {
         // 抽出の方が大きい場合
         // 置換の方が大きい場合
-        print_warnlog(r, RP_FLAG.PROVISION, "JSON変換ルールに配列の個数誤りがあるため変換できません。[" + replUri + "],[" + extrUri + "]");
+        print_warnlog(r, rpFlg, "JSON変換ルールに配列の個数誤りがあるため変換できません。[" + replUri + "],[" + extrUri + "]");
         Object.entries(map).forEach(function (p) {
             delete map[p[0]];
         });
@@ -1078,36 +1080,229 @@ function convertUri(map, extrUri, replUri, r) {
 
 
 /**
- * マッピング
+ * マッピング変換処理
  * @private
  * @param {Object} obj
  * @param {Array<Object>} json_convert_mappings
- * @param {number} get_set_flag
+ * @param {number} rpFlg
  * @param {number} r
  * @return {Object} edit_obj
  */
-function mapping(obj, json_convert_mappings, get_set_flag, r) {
+function mappingConversion(obj, json_convert_mappings, rpFlg, r) {
     var edit_obj = {};
-
-    var methodNum = 0;
-    if (get_set_flag === GET_SET_FLAG.GET) {
-        methodNum++;
-    }
-    var j = 0;
 
     for (var i = 0; i < json_convert_mappings.length; i++) {
         var mapping = json_convert_mappings[i];
-        var uriArray = [mapping.datastore, mapping.response];
-        var array_datastore = mapping.datastore.split(".");
-        var array_response = mapping.response.split(".");
-        var arrayArray = [array_datastore, array_response];
-        // XOR GET 1^1->0 1^0->1 ^GET 0^1->1 0^0->0
-        var map = getEndValues(obj, arrayArray[methodNum ^ 1], r);
-        convertUri(map, uriArray[methodNum ^ 1], uriArray[methodNum ^ 0], r);
-        setEndValues(edit_obj, map, r);
+
+        // 「source」または「destination」が存在しない場合、マッピングエラー
+        if (typeof (mapping.source) === "undefined" || typeof (mapping.destination) === "undefined" ||
+            mapping.source.length == 0 || mapping.destination.length == 0) {
+            mappingError(rpFlg, "Mapping is missing a required parameter", r);
+        }
+
+        // カスタム関数(m:n)が指定された場合
+        if (0 < mapping.source.length && 0 < mapping.destination.length && 0 < mapping.function.length &&
+            mapping.function[0] === "custom") {
+            customFunction(rpFlg, obj, edit_obj, mapping, r);
+        } else if (mapping.source.length == 1 && mapping.destination.length == 1) {
+            // 1:1マッピング
+            mappingExecution(rpFlg, obj, edit_obj, mapping.source[0], mapping.destination[0], r);
+        } else if (mapping.source.length == 1 && 1 < mapping.destination.length) {
+            // 1:nマッピング
+            if (mapping.function.length == 0) {
+                // 関数なし
+                for (var j = 0; j < mapping.destination.length; j++) {
+                    mappingExecution(rpFlg, obj, edit_obj, mapping.source[0], mapping.destination[j], r);
+                }
+            } else {
+                // 関数あり
+                switch (mapping.function[0]) {
+                    case "SPLIT":
+                        split(rpFlg, obj, edit_obj, mapping, r);
+                        break;
+                    default:
+                        // マッピング処理なし（エラー）
+                        mappingError(rpFlg, "The specified function does not exist", r);
+                }
+            }
+        } else if (1 < mapping.source.length && mapping.destination.length == 1) {
+            // n:1マッピング
+            if (mapping.function.length == 0) {
+                // 関数なし（エラー）
+                mappingError(rpFlg, "No function specified", r);
+            } else {
+                // 関数あり
+                switch (mapping.function[0]) {
+                    case "CONCAT":
+                        concat(rpFlg, obj, edit_obj, mapping, r);
+                        break;
+                    default:
+                        // マッピング処理なし（エラー）
+                        mappingError(rpFlg, "The specified function does not exist", r);
+                }
+            }
+        } else if (1 < mapping.source.length && 1 < mapping.destination.length) {
+            // n:mマッピング
+            if (mapping.function.length == 0) {
+                // 関数なし（エラー）
+                mappingError(rpFlg, "No function specified", r);
+            } else {
+                // 関数あり
+                switch (mapping.function[0]) {
+                    default:
+                        // マッピング処理なし（エラー）
+                        mappingError(rpFlg, "The specified function does not exist", r);
+                }
+            }
+        }
+    }
+    return edit_obj;
+}
+
+/**
+ * SPLIT関数(1:nマッピング)
+ * 
+ * @param {number} rpFlg 
+ * @param {Object} obj 
+ * @param {Object} edit_obj 
+ * @param {Array<Object>} mapping 
+ * @param {Object} r 
+ */
+function split(rpFlg, obj, edit_obj, mapping, r) {
+
+    // 区切り文字
+    var delim = mapping.function[1];
+    if (delim === undefined) {
+        mappingError(rpFlg, "Mapping is missing a required parameter", r);
+    }
+    var listSource = mapping.source[0].split(".");
+    var sorceArray = getEndValue(obj, listSource).split(delim);
+
+    let tempObj = new Object();
+    for (var i = 0; i < mapping.destination.length; i++) {
+        var key = "key" + i;
+        if (i < sorceArray.length) {
+            tempObj[key] = sorceArray[i];
+        } else {
+            tempObj[key] = "";
+        }
+        mappingExecution(rpFlg, tempObj, edit_obj, key, mapping.destination[i], r);
+    }
+}
+
+/**
+ * CONCAT関数(n:1マッピング)
+ * 
+ * @param {number} rpFlg 
+ * @param {Object} obj 
+ * @param {Object} edit_obj 
+ * @param {Array<Object>} mapping 
+ * @param {Object} r 
+ */
+function concat(rpFlg, obj, edit_obj, mapping, r) {
+
+    // n個のデータを結合
+    var concatStr = "";
+    for (var j = 0; j < mapping.source.length; j++) {
+        var sourceData = "";
+        var listSource = mapping.source[j].split(".");
+        var endValue = getEndValue(obj, listSource);
+        if (endValue !== undefined) {
+            sourceData = endValue;
+            concatStr = concatStr + sourceData;
+        } else {
+            print_warnlog(r, rpFlg, "[" + mapping.source[j] + "]に該当するキーは存在しないため変換しません。");
+        }
+    }
+    // 入力データが無い場合、マッピングせずに終了する
+    if (concatStr === "") {
+        return;
     }
 
-    return edit_obj;
+    let tempObj = new Object();
+    var key = "key";
+    tempObj[key] = concatStr;
+    mappingExecution(rpFlg, tempObj, edit_obj, key, mapping.destination[0], r);
+}
+
+/**
+ * カスタム関数(n:mマッピング)
+ * 
+ * @param {number} rpFlg 
+ * @param {Object} obj 
+ * @param {Object} edit_obj 
+ * @param {Array<Object>} mapping 
+ * @param {Object} r 
+ */
+function customFunction(rpFlg, obj, edit_obj, mapping, r) {
+
+    // 変換前データ配列(src)
+    let s = new Array();
+    for (var i = 0; i < mapping.source.length; i++) {
+        var listSource = mapping.source[i].split(".");
+        var endValue = getEndValue(obj, listSource);
+        if (endValue != undefined) {
+            s.push(endValue);
+        } else {
+            print_warnlog(r, rpFlg, 'データマッピングルールにある' + mapping.source[i] + 'に該当するデータ項目は存在しないため変換しません。');
+            return;
+        }
+    }
+
+    // ユーザのコード指定実行により、変換後データ配列(dst)を作成
+    var d = new Array();
+    try {
+        let code = mapping.function[1] + '; return dst';
+        let codeFunction = new Function('src', 'dst', code);
+        d = codeFunction(s, d);
+    } catch (e) {
+        print_warnlog(r, rpFlg, mapping.source[0] + 'は関数ロジックに構文エラーがあるため、変換できません。');
+        return;
+    }
+
+    // 関数実行後の配列数チェック
+    if (mapping.destination.length != d.length) {
+        print_warnlog(r, rpFlg, mapping.source[0] + 'は関数が成立しないため変換しません。');
+        return;
+    }
+
+    let tempObj = new Object();
+    for (var i = 0; i < mapping.destination.length; i++) {
+        var key = "key" + i;
+        tempObj[key] = d[i];
+        mappingExecution(rpFlg, tempObj, edit_obj, key, mapping.destination[i], r);
+    }
+}
+
+/**
+ * マッピングエラー関数
+ * 
+ * @param {number} rpFlg 
+ * @param {Object} errMsg 
+ * @param {Object} r 
+ */
+function mappingError(rpFlg, errMsg, r) {
+
+    print_errorlog(r, rpFlg, "Internal Mapping Error", errMsg);
+    throw new Error("Internal Mapping Error");
+}
+
+/**
+ * マッピング実行処理
+ * @param {number} rpFlg 
+ * @param {Object} obj 
+ * @param {Object} edit_obj 
+ * @param {Object} source 
+ * @param {Object} destination 
+ * @param {Object} r 
+ */
+
+function mappingExecution(rpFlg, obj, edit_obj, source, destination, r) {
+
+    var array_source = source.split(".");
+    var map = getEndValues(obj, array_source, r);
+    convertUri(rpFlg, map, source, destination, r);
+    setEndValues(edit_obj, map, r);
 }
 
 /**
@@ -1138,11 +1333,11 @@ function getEndValue(obj, array) {
  * @private
  * @param {Object} obj
  * @param {Array<Object>} arrayConvertMappings
- * @param {number} get_set_flag
+ * @param {number} frag
  * @return {Object} editObj
  */
-function arrayMapping(obj, arrayConvertMappings, get_set_flag) {
-    if (get_set_flag === GET_SET_FLAG.GET) {
+function arrayMapping(obj, arrayConvertMappings, convert_code) {
+    if (convert_code === CONVERT_CODE.SERVER_RESPONSE) {
         var editObj;
     } else {
         return obj;
@@ -1150,8 +1345,8 @@ function arrayMapping(obj, arrayConvertMappings, get_set_flag) {
 
     for (var i = 0; i < arrayConvertMappings.length; i++) {
         var mapping = arrayConvertMappings[i];
-        var listDatastore = mapping.datastore.split(".");
-        var endValue = getEndValue(obj, listDatastore);
+        var listSource = mapping.source.split(".");
+        var endValue = getEndValue(obj, listSource);
         editObj = endValue;
         if (editObj != null) {
             return editObj;
@@ -1167,10 +1362,10 @@ function arrayMapping(obj, arrayConvertMappings, get_set_flag) {
  * @private
  * @param {Object} r
  * @param {string} orgJsonStr
- * @param {number} getSetFlag
+ * @param {number} convert_code
  * @return {Object}
  */
-function convertXml(r, orgJsonStr, getSetFlag) {
+function convertXml(r, orgJsonStr, convert_code) {
     var callApiUri = r.variables.request_uri;
     var callApiMethod = r.method;
     var xmlConverts = config_json.xml_converts;
@@ -1186,7 +1381,7 @@ function convertXml(r, orgJsonStr, getSetFlag) {
             && callApiMethod.match(xmlConvert.xml_convert_method)) {
             //xml変換フラグの取得
             var xmlFlag;
-            if (getSetFlag === GET_SET_FLAG.GET) {
+            if (convert_code === CONVERT_CODE.SERVER_RESPONSE) {
                 if (callApiMethod.match("GET")) {
                     xmlFlag = xmlConvert.xml_convert_get_flag;
                 }
@@ -1195,7 +1390,7 @@ function convertXml(r, orgJsonStr, getSetFlag) {
             if (!xmlFlag) {
                 return orgJsonStr;
             }
-            if (getSetFlag === GET_SET_FLAG.GET) {
+            if (convert_code === CONVERT_CODE.SERVER_RESPONSE) {
                 //JSONの"xml":キーにxmlを丸める
                 if (!callApiMethod.match("GET")) {
                     return orgJsonStr;
@@ -1217,15 +1412,28 @@ function convertXml(r, orgJsonStr, getSetFlag) {
  * @private
  * @param {Object} r
  * @param {string} org_json_str
- * @param {number} get_set_flag
+ * @param {number} convert_code
  * @return {Object}
  */
-function convert_json(r, org_json_str, get_set_flag) {
+function convert_json(r, org_json_str, convert_code, prm_call_api, prm_call_api_method) {
     var call_api_uri = r.variables.request_uri;
     var call_api_method = r.method;
-    // json_converts
-    var json_converts = config_json.json_converts;
+    var rpFlg;
+    var json_converts;
 
+    // json_converts, rpFlg
+    if (convert_code === CONVERT_CODE.SERVER_REQUEST || convert_code === CONVERT_CODE.SERVER_RESPONSE) {
+        json_converts = config_json.json_converts_server;
+        rpFlg = RP_FLAG.PROVISION;
+    } else {
+        json_converts = config_json.json_converts_client;
+        rpFlg = RP_FLAG.REFERENCE;
+        var call_api_uri = prm_call_api;
+        var call_api_method = prm_call_api_method;
+        if (convert_code === CONVERT_CODE.CLIENT_RESPONSE) {
+
+        }
+    }
     for (var i = 0; i < json_converts.length; i++) {
         var json_convert = json_converts[i];
         if (call_api_uri.match(json_convert.json_convert_uri)
@@ -1233,7 +1441,7 @@ function convert_json(r, org_json_str, get_set_flag) {
 
             // arrayFlagの取得
             var arrayFlag;
-            if (get_set_flag === GET_SET_FLAG.GET) {
+            if (convert_code === CONVERT_CODE.SERVER_RESPONSE) {
                 arrayFlag = json_convert.array_convert_get_flag;
             }
 
@@ -1244,29 +1452,33 @@ function convert_json(r, org_json_str, get_set_flag) {
 
                 if (typeof (arrayConvertMappings) === "undefined") {
                     // ルールがないときは変換しない
-                    print_warnlog(r, RP_FLAG.PROVISION, "array_convert_mappings variable is undefined.");
+                    print_warnlog(r, rpFlg, "array_convert_mappings variable is undefined.");
                     break;
                 }
 
             } else {
-                // json_flagの取得
-                var json_flag;
-                if (get_set_flag === GET_SET_FLAG.GET) {
-                    json_flag = json_convert.json_convert_get_flag;
+
+                var json_convert_request_flag = json_convert.json_convert_request_flag;
+                var json_convert_response_flag = json_convert.json_convert_response_flag;
+                if (((convert_code == CONVERT_CODE.CLIENT_REQUEST || convert_code == CONVERT_CODE.SERVER_REQUEST) && ((typeof (json_convert_request_flag) === "undefined") || json_convert_request_flag !== true))||
+                    ((convert_code == CONVERT_CODE.CLIENT_RESPONSE || convert_code == CONVERT_CODE.SERVER_RESPONSE) && ((typeof (json_convert_response_flag) === "undefined") || json_convert_response_flag !== true))) {
+                    // 設定値がない、またはレスポンスフラグが実際のリクエスト／レスポンスと異なる場合は変換しない
+                    break;
+                }
+
+                var json_convert_rule;
+                if (convert_code === CONVERT_CODE.SERVER_REQUEST || convert_code === CONVERT_CODE.CLIENT_REQUEST) {
+                    json_convert_rule = json_convert.json_convert_request_rule;
                 } else {
-                    json_flag = json_convert.json_convert_set_flag;
+                    json_convert_rule = json_convert.json_convert_response_rule;
                 }
-                // json_flag=falseもしくはundefinedのときJSON変換は行わない
-                if (!json_flag) {
-                    return org_json_str;
-                }
-                var json_convert_rule = json_convert.json_convert_rule;
+
                 var json_convert_rules = config_json.json_convert_rules;
                 var json_convert_mappings = json_convert_rules[json_convert_rule];
 
                 if (typeof (json_convert_mappings) === "undefined") {
                     // ルールがないときは変換しない
-                    print_warnlog(r, RP_FLAG.PROVISION, "json_convert_mappings variable is undefined.");
+                    print_warnlog(r, rpFlg, "json_convert_mappings variable is undefined.");
                     break;
                 }
             }
@@ -1279,10 +1491,10 @@ function convert_json(r, org_json_str, get_set_flag) {
                 edit_json = [];
                 for (var num = 0; num < tmpJson.length; num++) {
                     if (!arrayFlag) {
-                        var edit_obj = mapping(tmpJson[num], json_convert_mappings, get_set_flag, r);
+                        var edit_obj = mappingConversion(tmpJson[num], json_convert_mappings, rpFlg, r);
                         edit_json.push(edit_obj);
                     } else {
-                        var edit_obj = arrayMapping(tmpJson[num], arrayConvertMappings, get_set_flag);
+                        var edit_obj = (tmpJson[num], arrayConvertMappings, convert_code);
                         if (edit_obj) {
                             edit_json.push(edit_obj);
                         }
@@ -1290,9 +1502,9 @@ function convert_json(r, org_json_str, get_set_flag) {
                 }
             } else {
                 if (!arrayFlag) {
-                    edit_json = mapping(tmpJson, json_convert_mappings, get_set_flag, r);
+                    edit_json = mappingConversion(tmpJson, json_convert_mappings, rpFlg, r);
                 } else {
-                    edit_json = arrayMapping(tmpJson, arrayConvertMappings, get_set_flag);
+                    edit_json = arrayMapping(tmpJson, arrayConvertMappings, convert_code);
                 }
 
             }
@@ -1302,7 +1514,7 @@ function convert_json(r, org_json_str, get_set_flag) {
         }
     }
     // URIが一致しない場合、JSON変換はしない
-    print_warnlog(r, RP_FLAG.PROVISION, "This API can not perform JSON conversion.");
+    print_warnlog(r, rpFlg, "This API can not perform JSON conversion.");
     return org_json_str;
 }
 
@@ -1412,7 +1624,7 @@ function addClientIdForBinary(r, requestBody, introspection_response) {
  * @return {boolean}
  */
 function isEmpty(value) {
-    return (typeof (value) === "undefined") || (value === "")|| (value === null);
+    return (typeof (value) === "undefined") || (value === "") || (value === null);
 }
 
 /**
@@ -1666,22 +1878,35 @@ function call_edgemodule(r, access_token, requestBody_json) {
     var uri = "/_call_edgemodule";
     var args = "access_token=" + access_token + "&call_uri=" + call_uri + "&contentType=" + call_api_contentType + "&accept=" + call_api_accept;
 
+    // JSON変換を行う
+    call_api_body = convert_json(r, call_api_body, CONVERT_CODE.CLIENT_REQUEST, call_uri, call_api_method);
     r.subrequest(uri,
         { method: call_api_method, args: args, body: call_api_body },
         function (reply) {
+            // エラー用レスポンスボディ退避
+            var responseBody = reply.responseBody;
             if (200 <= reply.status && reply.status < 300) {
                 // 正常
                 print_accesslog(r, RP_FLAG.REFERENCE, call_api, getHostFullUrl(r), r.method, "Succeeded in calling the External API.(request_time:" + reply.variables.request_time + "s)");
+                print_accesslog(r, RP_FLAG.REFERENCE, r.method, "The data has been updated.");
+                // 正常な場合JSON変換を行う
+                var tmpResponseBody = JSON.parse(responseBody);
+                var tmpResponseBody2 = JSON.stringify(tmpResponseBody["data"]);
+                var tmpResponseBody3 = convert_json(r, tmpResponseBody2, CONVERT_CODE.CLIENT_RESPONSE, call_uri, call_api_method);
+                tmpResponseBody["data"] = JSON.parse(tmpResponseBody3);
+                responseBody = JSON.stringify(tmpResponseBody, undefined, "\t");
             } else {
                 // エラーログのメッセージ
                 print_accesslog(r, RP_FLAG.REFERENCE, call_api, getHostFullUrl(r), r.method, "Failed to call the External API.");
                 print_errorlog(r, RP_FLAG.REFERENCE, "Call Node API Error", reply.responseBody);
+                // JSON形式で返却する;
+                responseBody = reply.responseBody;
             }
             // 上記以外のステータスはログ
             // 共通
             print_accesslog(r, RP_FLAG.REFERENCE, getHostFullUrl(r), getRemoteFullUrl(r), r.method, "Called the Internal API.");
             // そのまま返却する
-            r.return(reply.status, toJSON(reply.status, reply.responseBody));
+            r.return(reply.status, toJSON(reply.status, responseBody));
             return;
         }
     );
@@ -1842,12 +2067,12 @@ function call_system_api_init(r) {
     // requestBody
     var requestBody = r.requestBody;
 
-    //Binaryの場合はクライアントIDの付与
+    // Binaryの場合はクライアントIDの付与
     requestBody = addClientIdForBinary(r, requestBody, introspection_response);
 
-    //json_flagがあるならjson変換
-    requestBody = convert_json(r, requestBody, GET_SET_FLAG.SET);
-    requestBody = convertXml(r, requestBody, GET_SET_FLAG.SET);
+    // JSON変換を行う
+    requestBody = convert_json(r, requestBody, CONVERT_CODE.SERVER_REQUEST);
+    requestBody = convertXml(r, requestBody, CONVERT_CODE.SERVER_REQUEST);
 
     print_accesslog(r, RP_FLAG.PROVISION, getHostFullUrl(r), get_call_system_api(r), call_system_api_method, "Called the Internal API.");
     var uri = "/_call_system_api";
@@ -1862,8 +2087,8 @@ function call_system_api_init(r) {
                     // 例外情報からメッセージを取得
                     print_accesslog(r, RP_FLAG.PROVISION, r.method, "Completed the acquisition of data.");
                     // 正常な場合XML変換JSON変換を行う
-                    responseBody = convertXml(r, responseBody, GET_SET_FLAG.GET);
-                    responseBody = convert_json(r, responseBody, GET_SET_FLAG.GET);
+                    responseBody = convertXml(r, responseBody, CONVERT_CODE.SERVER_RESPONSE);
+                    responseBody = convert_json(r, responseBody, CONVERT_CODE.SERVER_RESPONSE);
                     //絞り込み
                     responseBody = scopeFiltering(responseBody, introspection_response.scope);
                 } else {
@@ -1876,11 +2101,11 @@ function call_system_api_init(r) {
                 if (reply.status === 200) {
                     // データ提供システムに正常に書き込み完了
                     print_accesslog(r, RP_FLAG.PROVISION, r.method, "The data has been updated.");
-                    responseBody = convert_json(r, responseBody, GET_SET_FLAG.GET);
+                    responseBody = convert_json(r, responseBody, CONVERT_CODE.SERVER_RESPONSE);
                 } else if (reply.status === 201) {
                     // データ提供システムに正常に書き込み完了
                     print_accesslog(r, RP_FLAG.PROVISION, r.method, "The data has been created.");
-                    responseBody = convert_json(r, responseBody, GET_SET_FLAG.GET);
+                    responseBody = convert_json(r, responseBody, CONVERT_CODE.SERVER_RESPONSE);
                 } else {
                     print_errorlog(r, RP_FLAG.PROVISION, "Call SYSTEM API Error", reply.responseBody);
                     // JSON形式で返却する;
@@ -1896,4 +2121,4 @@ function call_system_api_init(r) {
         }
     );
 }
-export default {EdgeError,addClientIdForBinary,addDefaultPort,addMetadata,arrayMapping,call_edgemodule,call_system_api_init,checkAuthorizationServer,checkErrorResponseFromAuthorizationServer,checkErrorResponseFromHTTPStatusCodeOnly,checkGbizidAndCorpid,checkIdAud,check_requestBody,convertUri,convertXml,convert_json,createErrorResponse,createErrorResponseForCheckAuthorizationServer,create_log_nginx_variables_str,create_parameter,decodeURIComponentForRFC3986,decode_requestBody,formatDate,getCallAPI,getCallSystemApiApiKey,getCallSystemApiAuthorization,getClientErrorResponse,getConfig,getEndValue,getEndValues,getHostFullUrl,getOAuth2TokenEndpoint,getOAuth2TokenIntrospectEndpoint,getRemoteFullUrl,getScopeMapping,getServerErrorResponse,get_access_token,get_call_system_api,introspectAccessToken,isEmpty,jsonStringifyFromJsonString,jsonStringifyFromObject,mapping,nvl,print_accesslog,print_errorlog,print_warnlog,redirect_authorized,scopeFiltering,scopeMapping,setEndValue,setEndValues,summary,toJSON,tsudodoi};
+export default { EdgeError, addClientIdForBinary, addDefaultPort, addMetadata, arrayMapping, call_edgemodule, call_system_api_init, checkAuthorizationServer, checkErrorResponseFromAuthorizationServer, checkErrorResponseFromHTTPStatusCodeOnly, checkGbizidAndCorpid, checkIdAud, check_requestBody, convertUri, convertXml, convert_json, createErrorResponse, createErrorResponseForCheckAuthorizationServer, create_log_nginx_variables_str, create_parameter, decodeURIComponentForRFC3986, decode_requestBody, formatDate, getCallAPI, getCallSystemApiApiKey, getCallSystemApiAuthorization, getClientErrorResponse, getConfig, getEndValue, getEndValues, getHostFullUrl, getOAuth2TokenEndpoint, getOAuth2TokenIntrospectEndpoint, getRemoteFullUrl, getScopeMapping, getServerErrorResponse, get_access_token, get_call_system_api, introspectAccessToken, isEmpty, jsonStringifyFromJsonString, jsonStringifyFromObject, mapping: mappingConversion, nvl, print_accesslog, print_errorlog, print_warnlog, redirect_authorized, scopeFiltering, scopeMapping, setEndValue, setEndValues, summary, toJSON, tsudodoi };

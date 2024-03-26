@@ -2,7 +2,7 @@ version: '3'
 services:
 
   edge-module:
-    image: gbizconnect/gbizconnect-node-nginx:v1.0.4
+    image: gbizconnect/gbizconnect-node-nginx:v2.0.0
     depends_on:
       - swaggerui
       - swaggereditor

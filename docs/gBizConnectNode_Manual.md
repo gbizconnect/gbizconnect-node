@@ -428,106 +428,110 @@ curl https://localhost/communication/status
  図5-1-8 API利用申請完了画面
 </div>
 
-### 5.2.(任意)gBizConnectの都度同意の設定
+### 5.2.(任意)gBizConnect Portalで標準データ変換の設定
+
+詳細は[6.2.3(任意)gBizConnect Portalで標準データ変換の設定](#623任意gBizConnect-Portalで標準データ変換の設定)をご参照ください。
+
+### 5.3.(任意)gBizConnectの都度同意の設定
 
  　この項目は都度同意によるシステム間連携を実施する場合の設定です。任意の設定のため、必要に応じて設定してください。
 
-#### 5.2.1gBizConnectの都度同意の流れ
+#### 5.3.1gBizConnectの都度同意の流れ
 
 都度同意の流れは次の通りです。
 スコープの詳細は「[Node仕様書：3.2. gBizConnectのスコープ ](https://github.com/gbizconnect/gbizconnect-node/blob/master/docs/gBizConnectNode.md#32-gbizconnectのスコープ)」を参照してください。
 
 <div align="center">
 
-表5-2-1　事前設定
+表5-3-1　事前設定
 
 </div>
 
 |No.|対象ユーザー|システムで実装が必要な内容|対応する手順|
 |:-|:-|:-|:-|
 |1|データ提供者|gBizConnect PortalのNode設定画面(基本設定)で「データ提供範囲設定」の項目を設定|[6.2.2gBizConnect Portalでデータ提供範囲の設定](#622gBizConnect-Portalでデータ提供範囲の設定)|
-|2|データ提供者|gBizConnect Portalで標準データ変換設定を実施する。(データ提供システムのデータが法人標準データの形式であれば不要）|[6.2.3(任意)gBizConnect Portalで標準データ変換の設定](#623任意gBizConnect-Portalで標準データ変換の設定)|
-|3|データ要求者|gBizConnect PortalのNode設定画面(都度同意)で「都度同意設定情報」の項目を設定 |[5.2.2データ要求者で必要な都度同意の事前設定](#522データ要求者で必要な都度同意の事前設定)|
-|4|データ提供者/データ要求者|双方でNode設定ファイルのダウンロード・反映|[5.3.Node設定ファイルをgBizConnect Nodeへ反映](#53Node設定ファイルをgBizConnect-Nodeへ反映)|
+|2|データ提供者/データ要求者|gBizConnect Portalで標準データ変換設定を実施する。(データ提供システムのデータが法人標準データの形式であれば不要）|[6.2.3(任意)gBizConnect Portalで標準データ変換の設定](#623任意gBizConnect-Portalで標準データ変換の設定)|
+|3|データ要求者|gBizConnect PortalのNode設定画面(都度同意)で「都度同意設定情報」の項目を設定 |[5.3.2データ要求者で必要な都度同意の事前設定](#532データ要求者で必要な都度同意の事前設定)|
+|4|データ提供者/データ要求者|双方でNode設定ファイルのダウンロード・反映|[5.4.Node設定ファイルをgBizConnect Nodeへ反映](#54Node設定ファイルをgBizConnect-Nodeへ反映)|
 
 <div align="center">
 
-表5-2-2　都度同意でシステム間連携する際の流れ
+表5-3-2　都度同意でシステム間連携する際の流れ
 
 </div>
 
 |No.|対象ユーザー|システムで実装が必要な内容|対応する手順|
 |:-|:-|:-|:-|
-|1|データ要求者|データ要求システムから、データ要求システムのスコープ選択画面取得APIを利用しスコープ選択画面を呼び出す|[5.5.都度同意によるシステム間連携](#55都度同意によるシステム間連携)|
-|2|データ要求者|スコープ選択画面で取得するデータのスコープを選択|[5.5.都度同意によるシステム間連携](#55都度同意によるシステム間連携)|
-|3|データ要求者|gBizIDへログイン画面が表示されるため、認証情報を入力し認証|[5.5.都度同意によるシステム間連携](#55都度同意によるシステム間連携)|
-|4|データ要求者|同意画面で同意すると、データ要求システムNodeから都度同意のシステム間連携に必要な情報がリダイレクトがされる|[5.5.都度同意によるシステム間連携](#55都度同意によるシステム間連携)|
-|5|データ要求者|リダイレクトされた情報を利用し、データ要求システムからデータ要求システムNodeの都度同意APIを呼び出すことで、Node間のAPI連携が行われ、データ要求システムにスコープで絞り込まれた内容が返却される。|[5.5.都度同意によるシステム間連携](#55都度同意によるシステム間連携)|
+|1|データ要求者|データ要求システムから、データ要求システムのスコープ選択画面取得APIを利用しスコープ選択画面を呼び出す|[5.6.都度同意によるシステム間連携](#56都度同意によるシステム間連携)|
+|2|データ要求者|スコープ選択画面で取得するデータのスコープを選択|[5.6.都度同意によるシステム間連携](#56都度同意によるシステム間連携)|
+|3|データ要求者|gBizIDへログイン画面が表示されるため、認証情報を入力し認証|[5.6.都度同意によるシステム間連携](#56都度同意によるシステム間連携)|
+|4|データ要求者|同意画面で同意すると、データ要求システムNodeから都度同意のシステム間連携に必要な情報がリダイレクトがされる|[5.6.都度同意によるシステム間連携](#56都度同意によるシステム間連携)|
+|5|データ要求者|リダイレクトされた情報を利用し、データ要求システムからデータ要求システムNodeの都度同意APIを呼び出すことで、Node間のAPI連携が行われ、データ要求システムにスコープで絞り込まれた内容が返却される。|[5.6都度同意によるシステム間連携](#56都度同意によるシステム間連携)|
 
 都度同意の画面遷移のイメージは次のとおりです。
 <div align="center">
 <img src="img/tsudodouiflow.png">
-図5-2-1 都度同意画面遷移イメージ
+図5-3-1 都度同意画面遷移イメージ
 </div>
 <br>
 <a name="jump"></a>
 
-#### 5.2.2データ要求者で必要な都度同意の事前設定
+#### 5.3.2データ要求者で必要な都度同意の事前設定
 
- (1)図5-2-2の画面で「gBizConnect Nodeのオプションを設定する」を選択します。
+ (1)図5-3-2の画面で「gBizConnect Nodeのオプションを設定する」を選択します。
 
  <div align="center">
  <img src="img/tudodoui_set1.png" alt="gBizConnectに参加する画面" title="gBizConnectに参加する画面">
 
-  図5-2-2 gBizConnectに参加する画面
+  図5-3-2 gBizConnectに参加する画面
  </div>
 
- (2)図5-2-3、図5-2-4の画面で、設定を変更したいシステムを選択します。
+ (2)図5-3-3、図5-3-4の画面で、設定を変更したいシステムを選択します。
 
  <div align="center">
  <img src="img/tudodoui_set2.png" alt="システム一覧画面(案内表示あり)"システム一覧画面(案内表示あり)">
 
-  図5-2-3 システム一覧画面(案内表示あり)
+  図5-3-3 システム一覧画面(案内表示あり)
  </div>
 
 <div align="center">
  <img src="img/tudodoui_set3.png" alt="システム一覧画面"システム一覧画面">
 
-  図5-2-4 システム一覧画面
+  図5-3-4 システム一覧画面
  </div>
 
- (3)図5-2-5のNode設定画面(基本設定)で「都度同意」を選択します。
+ (3)図5-3-5のNode設定画面(基本設定)で「都度同意」を選択します。
 
  <div align="center">
  <img src="img/tudodoui_set4.png" alt="Node設定画面(基本設定)" title="Node設定画面(基本設定)">
 
-  図5-2-5 Node設定画面(基本設定)
+  図5-3-5 Node設定画面(基本設定)
  </div>
 
- (4)図5-2-6のNode設定画面(都度同意)で「都度同意設定情報」の必要な項目を入力し、「設定を保存する」を選択します。
+ (4)図5-3-6のNode設定画面(都度同意)で「都度同意設定情報」の必要な項目を入力し、「設定を保存する」を選択します。
 
  <div align="center">
  <img src="img/tudodoui_set5.png" alt="Node設定画面(都度同意)" title="Node設定画面(都度同意)">
 
-  図5-2-6 Node設定画面(都度同意)
+  図5-3-6 Node設定画面(都度同意)
  </div>
 
- (5)図5-2-7のようなダイアログの「OK」を選択し、図5-2-8に表示が変われば設定完了となります。
+ (5)図5-3-7のようなダイアログの「OK」を選択し、図5-3-8に表示が変われば設定完了となります。
 
  <div align="center">
  <img src="img/tudodoui_set6.png" alt="設定保存確認ダイアログ" title="設定保存確認ダイアログ">
 
-  図5-2-7 設定保存確認ダイアログ
+  図5-3-7 設定保存確認ダイアログ
  </div>
 
  <div align="center">
  <img src="img/tudodoui_set7.png" alt="設定保存完了ダイアログ" title="設定保存完了ダイアログ">
 
-  図5-2-8 設定保存完了ダイアログ
+  図5-3-8 設定保存完了ダイアログ
  </div>
 
 
-### 5.3.Node設定ファイルをgBizConnect Nodeへ反映
+### 5.4.Node設定ファイルをgBizConnect Nodeへ反映
 
 ※本手順はデータ提供者側で「[5.1.gBizConnect PortalでAPI利用申請](#51gBizConnect-PortalでAPI利用申請)」で実施したAPI利用申請が承認されていることが前提です。API利用申請の確認画面から、申請したAPIのステータスが「完了」になっていることを確認してください。
 
@@ -536,7 +540,7 @@ curl https://localhost/communication/status
 <div align="center">
 <img src="img/Node_set_douwnload0.png" alt="API利用申請の確認画面" title="API利用申請の確認">
 
-図5-3-1 API利用申請の確認画面
+図5-4-1 API利用申請の確認画面
 </div>
 
 (1)「[gBizConnectに参加する](https://portal.gbiz-connect.go.jp/menu_node)」から「gBizConnect Nodeのオプションを設定する」を選択します。
@@ -546,17 +550,17 @@ curl https://localhost/communication/status
 <div align="center">
 <img src="img/Node_set_douwnload1.png" alt="gBizConnectに参加する画面" title="gBizConnectに参加する画面">
 
-図5-3-2 gBizConnectに参加する画面
+図5-4-2 gBizConnectに参加する画面
 </div>
 
-(2)図5-3-3の画面から任意のシステムの「ダウンロード」を選択し、Node設定ファイルをダウンロードします。
+(2)図5-4-3の画面から任意のシステムの「ダウンロード」を選択し、Node設定ファイルをダウンロードします。
 
 </div>
 
 <div align="center">
 <img src="img/Node_set_douwnload2.png" alt="システム一覧画面" title="システム一覧画面">
 
- 図5-3-3 システム一覧画面
+ 図5-4-3 システム一覧画面
 </div>
 
 (3)gBizConnect Node設定画面で下記のURL をブラウザで開いて下さい。URLの「node.example.jp」をgBizConnect Nodeを導入したマシンのホスト名に修正します。<br>
@@ -573,16 +577,16 @@ http://node.example.jp:8080/setting.php
 <div align="center">
 <img src="img/Node_set_douwnload3.png">
 
-図5-3-4 gBizConnect Node設定画面
+図5-4-4 gBizConnect Node設定画面
 </div>
 
-(4)図5-3-4の画面で「ファイルの選択」を選択し(2)でダウンロードしたNode設定ファイルを選択します。
+(4)図5-4-4の画面で「ファイルの選択」を選択し(2)でダウンロードしたNode設定ファイルを選択します。
 
-(5)図5-3-4の画面で「保存」を選択し、導入したgBizConnect NodeにNode設定ファイルを反映してください。
+(5)図5-4-4の画面で「保存」を選択し、導入したgBizConnect NodeにNode設定ファイルを反映してください。
 
-### 5.4.事前同意によるシステム間連携
+### 5.5.事前同意によるシステム間連携
 
-　この項目は事前同意によるシステム間連携する場合の手順となります。都度同意によるシステム間連携は「[5.5.都度同意によるシステム間連携](#55都度同意によるシステム間連携)」を参照してください。<br>
+　この項目は事前同意によるシステム間連携する場合の手順となります。都度同意によるシステム間連携は「[5.6.都度同意によるシステム間連携](#56都度同意によるシステム間連携)」を参照してください。<br>
 API利用申請したAPIを呼び出し、データ連携できることを確認してください。コマンドの例を下記に示します。
 
 〇コマンド例
@@ -607,9 +611,9 @@ curl -u UserID:PassWord -X POST \
 ※API利用申請承認後のNode設定ファイルをAPI公開側で反映していない場合、エラーになります。
 ※上記以外のパターンについて補足事項(「[7.8.事前同意によるシステム間連携のリクエストパターン](#78事前同意によるシステム間連携のリクエストパターン)」)に記載しております。
 
-### 5.5.都度同意によるシステム間連携
+### 5.6.都度同意によるシステム間連携
 
-この項目は都度同意によるシステム間連携する場合の手順となります。事前同意によるシステム間連携は「[5.4.事前同意によるシステム間連携](#54事前同意によるシステム間連携)」を参照してください。
+この項目は都度同意によるシステム間連携する場合の手順となります。事前同意によるシステム間連携は「[5.5.事前同意によるシステム間連携](#55事前同意によるシステム間連携)」を参照してください。
 また下記の手順で記載するgBizConnect NodeのAPIの詳細は「[Node仕様書：2.2. API一覧](https://github.com/gbizconnect/gbizconnect-node/blob/master/docs/gBizConnectNode.md#22-api一覧)」を合わせてご参照ください。
 
 (1)データ要求システムからデータ提供システムNodeの下記のパラメータを指定しAPIを呼び出してください。
@@ -874,7 +878,7 @@ NodeAPIエンドポイントパス抽出正規表現：/v1/corporations/([0-9]+)
  図6-2-13 Node設定画面(基本設定)
 </div>
 
-(4)図6-2-14の設定画面で必要な項目を入力し、「設定を保存する」を選択します。
+(4)図6-2-14の設定画面で「データマッピングツールを開く」を選択すると、データマッピングツールが開かれます。
 
 <div align="center">
 <img src="img/hyouzyun_data_set4.png" alt="Node設定画面(法人標準データ変換①)" title="Node設定画面(法人標準データ変換①)">
@@ -882,75 +886,37 @@ NodeAPIエンドポイントパス抽出正規表現：/v1/corporations/([0-9]+)
  図6-2-14 Node設定画面(法人標準データ変換①)
 </div>
 
-入力例について説明します。下記の通り、データ提供システムから取得できる法人データを法人標準データに変換したいとします。
-
-
-〇データ提供システムから取得できるデータ
-
-```
-{
-    "corporate-number" : "1234567891011",
-    "corporate-name" : "○○株式会社",
-    "employees" : {
-        "all" : "500",
-        "regular" : "400"
-    },
-    "phonenumber" : "03-1234-5678"
-}
-```
-
-〇標準データ変換をした結果
-
-```
-{
-    "Basic" : {
-        "Destination" : {
-            "Corporate number" : "1234567891011",
-            "Corporate name" : "○○株式会社"
-        },
-        "Content" : {
-            "Employee number" : "600",
-            "Regular employee number" : "400"
-        },
-        "Contact information" : {
-            "Phone number" : "03-1234-5678"
-        }
-    }
-}
-```
-
-表6-2-2の通りに図6-2-14 Node設定画面(法人標準データ変換①)の各項目に入力します。
+(5)図6-2-15のデータマッピングツールでデータマッピングルールを作成して「出力」を選択すると、作成したデータマッピングルールが記載されたファイルが出力されます。
+　データマッピングツールの操作方法の詳細は、「[データマッピングツールのGitHub](https://github.com/gbizconnect/data-mapping-tool)」を参照してください。
 
 <div align="center">
+<img src="img/data_mapping_tool1.png" alt="データマッピングツール" title="データマッピングツール">
 
-表6-2-2　標準データ変換設定例
-
+ 図6-2-15 データマッピングツール
 </div>
 
-|標準法人データJSONキー|システムAPIレスポンスキー|
-|:-|:-|
-|Basic.Destination.Corporate number|corporate-number|
-|Basic.Destination.Corporate name|corporate-name|
-|Basic.Content.Employee number|employees.all|
-|Basic.Content.Regular employee number|employees.regular|
-|Basic.Contact information.Phone number|phonenumber|
+(6)図6-2-16の設定画面で前項で作成したファイルをインポートし、「設定を保存する」を選択します。
 
-<br>
+<div align="center">
+<img src="img/hyouzyun_data_set4-2.png" alt="Node設定画面(法人標準データ変換①)" title="Node設定画面(法人標準データ変換①)">
 
-(5)図6-2-15の設定画面で必要な項目を入力し、「設定を保存する」を選択します。
+ 図6-2-16 Node設定画面(法人標準データ変換①)
+</div>
+
+(7)図6-2-17の設定画面で必要な項目を入力し、「設定を保存する」を選択します。
 
 <div align="center">
 <img src="img/hyouzyun_data_set5.png" alt="Node設定画面(法人標準データ変換②)" title="Node設定画面(法人標準データ変換②)">
 
- 図6-2-15 Node設定画面(法人標準データ変換②)
+ 図6-2-17 Node設定画面(法人標準データ変換②)
 </div>
 
-(6)図6-2-16の設定画面で必要な項目を入力し、「設定を保存する」を選択します。
+(8)図6-2-18の設定画面で必要な項目を入力し、「設定を保存する」を選択します。
 
 <div align="center">
 <img src="img/hyouzyun_data_set6.png" alt="Node設定画面(法人標準データ変換③)" title="Node設定画面(法人標準データ変換③)">
 
- 図6-2-16 Node設定画面(法人標準データ変換③)
+ 図6-2-18 Node設定画面(法人標準データ変換③)
 </div>
 
 ### 6.3.gBizConnect NodeのAPI仕様定義/公開の設定
@@ -1073,11 +1039,11 @@ https://node.example.jp[:port]/swaggerui/
 
 ### 6.5.1gBizConnectの都度同意の流れ
 
-　この項目はデータ要求者の説明と同様のため、「[5.2.1gBizConnectの都度同意の流れ](#521gBizConnectの都度同意の流れ)」をご参照ください。
+　この項目はデータ要求者の説明と同様のため、「[5.3.1gBizConnectの都度同意の流れ](#531gBizConnectの都度同意の流れ)」をご参照ください。
 
 ### 6.6.Node設定ファイルの取得、gBizConnect Nodeへ反映
 
-　この項目はデータ要求者の設定の手順と同様のため、「[5.3.Node設定ファイルをgBizConnect Nodeへ反映](#53Node設定ファイルをgBizConnect-Nodeへ反映)」をご参照ください。
+　この項目はデータ要求者の設定の手順と同様のため、「[5.4.Node設定ファイルをgBizConnect Nodeへ反映](#54Node設定ファイルをgBizConnect-Nodeへ反映)」をご参照ください。
 
 　ただし、「[6.1.gBizConnect PortalでAPI登録](#61gbizconnect-portalでapi登録)」で登録したAPIエンドポイントに以下のいずれかを含む場合は、正規表現と見なされ正常にデータ連携ができないため、「[7.9.Node設定ファイルにおけるAPIエンドポイントのエスケープ](#79Node設定ファイルにおけるAPIエンドポイントのエスケープ)」を実施してください。
 
@@ -1231,7 +1197,7 @@ gBizConnectではシステム間連携で取得した値にメタデータを付
  図7-5-3 Node設定画面(基本設定)
 </div>
 
-(4)「[5.3.Node設定ファイルをgBizConnect Nodeへ反映](#53Node設定ファイルをgBizConnect-Nodeへ反映)」を参考にNode設定ファイルを更新します。
+(4)「[5.4.Node設定ファイルをgBizConnect Nodeへ反映](#54Node設定ファイルをgBizConnect-Nodeへ反映)」を参考にNode設定ファイルを更新します。
 
 ### 7.6 リバースプロキシ利用環境でのgBizConnect Nodeの導入時の注意点
 
@@ -1322,7 +1288,7 @@ proxy_set_header X-API-KEY $js_call_system_api_api_key;
 
 その後(8)を実施してください。
 
-(8)「[5.3.Node設定ファイルをgBizConnect Nodeへ反映](#53Node設定ファイルをgBizConnect-Nodeへ反映)」を参考にNode設定ファイルを更新してください。
+(8)「[5.4.Node設定ファイルをgBizConnect Nodeへ反映](#54Node設定ファイルをgBizConnect-Nodeへ反映)」を参考にNode設定ファイルを更新してください。
 
 (9)【APIキー認証の場合】下記のコマンドを実行します。
 
@@ -1390,7 +1356,7 @@ curl -u UserID:PassWord -X POST \
 
  本項目はNode設定ファイルにおけるAPIエンドポイントのエスケープを実施する方法について説明します。
 
- (1)「[5.3.Node設定ファイルをgBizConnect Nodeへ反映](#53Node設定ファイルをgBizConnect-Nodeへ反映)」(2)でダウンロードしたNode設定ファイルを開きます。
+ (1)「[5.4.Node設定ファイルをgBizConnect Nodeへ反映](#54Node設定ファイルをgBizConnect-Nodeへ反映)」(2)でダウンロードしたNode設定ファイルを開きます。
 
  (2)下記のように該当記号部分をエスケープします。
 
@@ -1407,7 +1373,7 @@ curl -u UserID:PassWord -X POST \
        },
 (略)
 ```
-(3)「[5.3.Node設定ファイルをgBizConnect Nodeへ反映](#53Node設定ファイルをgBizConnect-Nodeへ反映)」(3)以降を実施します。
+(3)「[5.4.Node設定ファイルをgBizConnect Nodeへ反映](#54Node設定ファイルをgBizConnect-Nodeへ反映)」(3)以降を実施します。
 
 ### 8.FAQ
 

@@ -100,6 +100,9 @@ RUN GPG_KEYS=B0F4253373F8F6F510D42178520A9993A1C052F8 \
 	&& tar -zxC /usr/src -f ndk.tar.gz \
 	&& tar -zxC /usr/src -f lua.tar.gz \
 	&& tar -zxC /usr/src -f njs-$NJS_VERSION.tar.gz \
+	&& sed -e 's/options.argc = ngx_argc;/options.argc = ngx_argc;\n    options.unsafe = 1;/g' /usr/src/njs-$NJS_VERSION/nginx/ngx_http_js_module.c > /usr/src/njs-$NJS_VERSION/nginx/ngx_http_js_module_tmp.c \
+	&& cp /usr/src/njs-$NJS_VERSION/nginx/ngx_http_js_module_tmp.c  /usr/src/njs-$NJS_VERSION/nginx/ngx_http_js_module.c \
+	&& rm /usr/src/njs-$NJS_VERSION/nginx/ngx_http_js_module_tmp.c  \
 	&& tar -zxC /usr/src -f lua-cjson-$LUA_CJSON_VERSION.tar.gz \
 	&& tar -zxC /usr/src -f luajit2-$LUAJIT2_VERSION.tar.gz \
 	&& rm luajit2-$LUAJIT2_VERSION.tar.gz \

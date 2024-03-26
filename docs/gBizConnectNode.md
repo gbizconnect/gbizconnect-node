@@ -105,7 +105,15 @@ APIマッピングの設定方法は、
 ### 2.4.標準データマッピング機能
 #### 2.4.1	JSON変換   
 
-gBizConnect Nodeは、受付・要求APIのパラメータmethodの値に応じて、GETの場合は、導入システムのAPIのレスポンスのJSON、POST、PUT、PATCHの場合は、リクエストのbodyパラメータのJSONの構造を設定にしたがって変換することができます。JSON変換を使用することで、導入システムのJSONの構造を知ることなく、gBizConnectの標準データJSONでデータ連携を行えます。  
+gBizConnect Nodeは、以下においてJSONの構造を設定にしたがって変換することができます。
+* API呼び出し元
+  * リクエスト送信時のリクエストデータ
+  * レスポンス取得後のレスポンスデータ
+* API呼び出し先
+  * リクエスト受付後のリクエストデータ
+  * レスポンス返却時のレスポンスデータ
+
+JSON変換を使用することで、gBizConnectの標準データJSONをはじめとした任意の形式でデータ連携を行えます。  
 JSON変換ではインプットとなるJSONとアウトプットとなるJSONのキー同士を対応付けることで、JSONの構造を変換します。JSONの値は変更しません。JSON変換の設定はAPIごとに設定できます。  
 
 JSON変換の設定方法は、
@@ -477,17 +485,26 @@ gBizConnect Node設定ファイルは、認証認可、APIマッピング、標�
 ||system_api_addr||string|-|○|データ提供システムのAPIのURLから「<スキーム名>://<ホスト名>[:<ポート番号>]」を設定します。<br>・<スキーム名>は「https://」または「http://」のみ設定できます。<br>・ [:<ポート番号>]は各スキームのデフォルトポートの場合省略可能です。|
 ||system_api_uri_extract||string|-|○|データ提供システムNodeNodeのAPIのエンドポイントのパスを設定します。正規表現を使用して下さい。先頭に^,末尾に $を使用しないと予期せぬマッピングがされる可能性があります。|
 ||system_api_uri_replace||string|-|○|データ提供システムのAPIのエンドポイントのパスを設定します。上記のsystem_api_uri_extractで、()でグループ化した文字列とマッチした部分を、$n(n>0)で参照し、埋め込むことができます。|
-|json_converts|||array|-|○|標準データマッピング機能の情報を設定します。<br>以下のキーを持つobjectの配列です。|
-||json_convert_get_flag||boolean|-|○|導入システムのAPIからレスポンスされたJSONのキーをgBizConnectの標準データJSONのキーに変換するかしないかを設定します。<br>true：JSON変換する<br>false：JSON変換しない|
-||json_convert_set_flag||boolean|-|○|導入システムのAPIを呼び出す前にgBizConnectの標準データJSONのキーを導入システムのJSONのキーに変換するかしないかを設定します。<br>true：JSON変換する<br>false：JSON変換しない|
+|json_converts_server|||array|-|○|API呼び出し先側の自身のAPIに対する標準データマッピング機能の情報を設定します。<br>以下のキーを持つobjectの配列です。|
+||json_convert_response_flag||boolean|-|○|レスポンス返却時のレスポンスデータ変換の有無を設定します。<br>true：JSON変換する<br>false：JSON変換しない|
+||json_convert_request_flag||boolean|-|○|リクエスト受付後のリクエストデータ変換の有無を設定します。<br>true：JSON変換する<br>false：JSON変換しない|
 ||array_convert_get_flag||boolean|-|○|導入システムのAPIからレスポンスされたJSONのキーを配列に変換するかしないかを設定します。<br>true：配列変換する<br>false：配列変換しない|
 ||json_convert_uri||string|-|○|JSON変換を実行するデータ提供システムNodeのAPIのエンドポイントのパスを設定します。正規表現を使用して下さい。先頭に^,末尾に $を使用しないと予期せぬJSON変換が行われる可能性があります。|
 ||json_convert_method||string|-|○|JSON変換を実行するデータ提供システムNodeのAPIのエンドポイントのメソッドを設定します。|
-||json_convert_rule||string|-|○|JSON変換で実行するルール名を設定します。json_convert_rulesのキーを一つ指定します。|
-|json_convert_rules|||array|-|○	|gBizConnectの標準データJSONと導入システムのJSONのキーのマッピングを設定します。<br>以下のキーを持つobjectの配列です。|
+||json_convert_response_rule||string|-|○|レスポンス返却時のJSON変換で実行するルール名を設定します。json_convert_rulesのキーを一つ指定します。|
+||json_convert_request_rule||string|-|○|リクエスト受付後のJSON変換で実行するルール名を設定します。json_convert_rulesのキーを一つ指定します。|
+|json_converts_client|||array|-|○|API呼び出し元側の申請先のAPIに対する標準データマッピング機能の情報を設定します。<br>以下のキーを持つobjectの配列です。|
+||json_convert_response_flag||boolean|-|○|レスポンス取得後のレスポンスデータ変換の有無を設定します。<br>true：JSON変換する<br>false：JSON変換しない|
+||json_convert_request_flag||boolean|-|○|リクエスト送信時のリクエストデータ変換の有無を設定します。<br>true：JSON変換する<br>false：JSON変換しない|
+||json_convert_uri||string|-|○|JSON変換を実行するデータ提供システムNodeのAPIのエンドポイントのパスを設定します。正規表現を使用して下さい。先頭に^,末尾に $を使用しないと予期せぬJSON変換が行われる可能性があります。|
+||json_convert_method||string|-|○|JSON変換を実行するデータ提供システムNodeのAPIのエンドポイントのメソッドを設定します。|
+||json_convert_response_rule||string|-|○|レスポンス取得後のJSON変換で実行するルール名を設定します。json_convert_rulesのキーを一つ指定します。|
+||json_convert_request_rule||string|-|○|リクエスト送信時のJSON変換で実行するルール名を設定します。json_convert_rulesのキーを一つ指定します。|
+|json_convert_rules|||array|-|○	|gBizConnectの標準データをはじめとした任意の形式のJSONと導入システムのJSONのキーのマッピングを設定します。<br>以下のキーを持つobjectの配列です。|
 ||JSON変換ルール名（手動設定）||object|-|○|任意のユニークな名前を設定します。<br>以下のキーを持つobjectの配列です。|
-|||response|string|-|○|gBizConnectの標準データJSONのキーを設定します。<br>ObjectがさらにObjectを持つような入れ子の場合、キーは階層を設定できます。<br>{"A":{"B":{"C":"D"}}}の"C"は"A.B.C"と設定します。|
-|||datastore|string|-|○|導入システムのJSONのキーを設定します。<br>ObjectがさらにObjectを持つような入れ子の場合、キーは階層を設定できます。<br>{"A":{"B":{"C":"D"}}}の"C"は"A.B.C"と設定します。|
+|||source|string|-|○|変換元データ項目のJSONのキーを配列で設定します。<br>ObjectがさらにObjectを持つような入れ子の場合、キーは階層を設定できます。<br>{"A":{"B":{"C":"D"}}}の"C"は"A.B.C"と設定します。|
+|||destination|string|-|○|変換先データ項目のJSONのキーを配列で設定します。<br>ObjectがさらにObjectを持つような入れ子の場合、キーは階層を設定できます。<br>{"A":{"B":{"C":"D"}}}の"C"は"A.B.C"と設定します。|
+|||function|string|-|○|変換元データ項目を変換・分割・結合する関数名と関数ロジックを配列で設定します。値の1つ目が関数名で、2つ目がロジックとなります。<br>関数を用いない場合は空となります。|
 |array_convert_rules|||array|-|○	|導入システムのJSONのキーを配列に変換するルールを設定します。<br>以下のキーを持つobjectの配列です。|
 ||配列変換ルール名（手動設定）||object|-|○|任意のユニークな名前を設定します。<br>以下のキーを持つobjectの配列です。|
 |||datastore|string|-|○|導入システムのJSONのキーを設定します。<br>ObjectがさらにObjectを持つような入れ子の場合、キーは階層を設定できます。<br>{"A":{"B":{"C":"D"}}}の"C"は"A.B.C"と設定します。|
