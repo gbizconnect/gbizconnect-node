@@ -1345,7 +1345,7 @@ function arrayMapping(obj, arrayConvertMappings, convert_code) {
 
     for (var i = 0; i < arrayConvertMappings.length; i++) {
         var mapping = arrayConvertMappings[i];
-        var listSource = mapping.source.split(".");
+        var listSource = mapping.datastore.split(".");
         var endValue = getEndValue(obj, listSource);
         editObj = endValue;
         if (editObj != null) {
@@ -1494,7 +1494,7 @@ function convert_json(r, org_json_str, convert_code, prm_call_api, prm_call_api_
                         var edit_obj = mappingConversion(tmpJson[num], json_convert_mappings, rpFlg, r);
                         edit_json.push(edit_obj);
                     } else {
-                        var edit_obj = (tmpJson[num], arrayConvertMappings, convert_code);
+                        var edit_obj = arrayMapping(tmpJson[num], arrayConvertMappings, convert_code);
                         if (edit_obj) {
                             edit_json.push(edit_obj);
                         }
