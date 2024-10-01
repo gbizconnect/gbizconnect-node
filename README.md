@@ -4,7 +4,7 @@
 **【重要】当該リポジトリのパブリック公開終了のお知らせ**<br>
 gBizConnectの公開資材をご利用頂きまして、誠にありがとうございます。<br>
 この度、GithubやDockerHubにて公開中の当該資材におきましても、順次公開終了とさせて頂くこととなりました。<br>
-つきましては、<a href="https://github.com/gbizconnect/" target="_blank">GitHub</a>を<b>2024年10月末</b>を持ちまして公開終了いたします。<br>
+つきましては、当該<a href="https://github.com/gbizconnect/" target="_blank">リポジトリ</a>を<b>2024年10月末</b>を持ちまして公開終了いたします。<br>
 Fork先における影響としましては、フォーク元とのリンクが失われるため、独立したリポジトリとして扱われますことご容赦ください。<br>
 
 gBizConnect運営事務局
